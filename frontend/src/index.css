@@ -1,0 +1,193 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  --primary-cyan: #00B4D8;
+  --primary-cyan-hover: #0096C7;
+  --primary-orange: #F4A261;
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --bg-color: #f8fafc;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  background-image: url('/bg.jpg');
+  background-position: center top; 
+  background-size: cover;
+  background-attachment: fixed;
+  font-family: 'Poppins', sans-serif;
+  color: var(--text-main);
+}
+
+* { box-sizing: border-box; }
+
+/* Keep everything you saw before exactly as is below, but adding the new Step/Print UI */
+
+/* ... Skipping repetitive login CSS to save space, but keeping all Dashboard classes ... */
+/* Wait, I should rewrite the whole thing to prevent CSS loss since Overwrite is true. */
+
+.login-wrapper { min-height: 100vh; display: flex; justify-content: flex-start; align-items: center; background: rgba(0, 0, 0, 0.2); padding-left: 12%; overflow: hidden; }
+.login-container { background: #ffffff; padding: 3.5rem 3rem; border-radius: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); width: 100%; max-width: 480px; animation: slideInLeft 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+@keyframes slideInLeft { 0% { transform: translateX(-50px); opacity: 0; } 100% { transform: translateX(0); opacity: 1; } }
+
+.logo-area { text-align: center; margin-bottom: 2.5rem; }
+.brand-logo { width: 110px; height: auto; margin-bottom: 15px; mix-blend-mode: multiply; }
+.logo-area h1 { margin: 0; font-size: 2.6rem; color: var(--primary-cyan); font-weight: 800; letter-spacing: -0.5px; }
+.logo-area .subtitle { color: var(--primary-orange); margin-top: 0.4rem; font-size: 1.05rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+
+.input-group { margin-bottom: 1.5rem; }
+.input-group label { display: block; margin-bottom: 0.6rem; font-weight: 600; font-size: 1rem; color: #334155; }
+.input-group input { width: 100%; padding: 1rem 1.2rem; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 1.1rem; font-family: 'Poppins', sans-serif; transition: all 0.3s ease; background: #f8fafc; }
+.input-group input:focus { outline: none; border-color: var(--primary-cyan); background: white; box-shadow: 0 0 0 4px rgba(0, 180, 216, 0.1); }
+
+.forgot-password { text-align: right; margin-bottom: 1.8rem; }
+.forgot-password a { color: var(--primary-cyan); text-decoration: none; font-size: 0.95rem; font-weight: 600; transition: color 0.3s; }
+.forgot-password a:hover { color: var(--primary-cyan-hover); text-decoration: underline; }
+
+.login-btn { width: 100%; padding: 1.1rem; background: linear-gradient(135deg, var(--primary-cyan), var(--primary-cyan-hover)); color: white; border: none; border-radius: 12px; font-size: 1.2rem; font-weight: 700; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 10px 20px rgba(0, 180, 216, 0.25); font-family: 'Poppins', sans-serif; }
+.login-btn:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(0, 180, 216, 0.4); }
+
+.dashboard-layout { display: flex; height: 100vh; background: var(--bg-color); background-image: none; }
+.sidebar { width: 330px; background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); padding: 2.5rem 2rem; display: flex; flex-direction: column; border-right: 1px solid #e2e8f0; box-shadow: 4px 0 25px rgba(0,0,0,0.03); z-index: 10; }
+.sidebar-brand { text-align: center; margin-bottom: 2.5rem; display: flex; flex-direction: column; align-items: center; }
+.sidebar-logo { width: 160px; mix-blend-mode: multiply; margin-bottom: 0.2rem; }
+.sidebar-brand h2 { color: var(--primary-cyan); font-weight: 800; font-size: 1.4rem; margin: 0; text-transform: uppercase; letter-spacing: 1.5px; }
+
+.sidebar-menu { display: flex; flex-direction: column; gap: 0.8rem; flex: 1; margin-top: 1rem; }
+.menu-item { background: transparent; border: none; text-align: left; padding: 1.1rem 1.4rem; font-size: 1.05rem; font-weight: 600; color: #475569; border-radius: 14px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; }
+.menu-item:hover { background: #e2e8f0; color: #0f172a; transform: translateX(5px); }
+.menu-item.active { background: linear-gradient(135deg, var(--primary-cyan), var(--primary-cyan-hover)); color: white; box-shadow: 0 10px 20px rgba(0, 180, 216, 0.25); }
+.menu-icon { font-size: 1.3rem; margin-right: 1rem; opacity: 0.9; }
+.menu-item.disabled { opacity: 0.4; cursor: not-allowed; }
+
+.logout-btn { padding: 1.1rem; border: none; color: white; background: #ef4444; border-radius: 14px; font-weight: 700; cursor: pointer; transition: 0.3s; font-size: 1.05rem; display: flex; align-items: center; justify-content: center; letter-spacing: 0.5px; }
+.logout-btn:hover { background: #dc2626; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(220, 38, 38, 0.25); color: white; }
+
+.main-content { flex: 1; padding: 0; overflow-y: auto; position: relative; }
+.dashboard-bg { background: linear-gradient(rgba(255, 255, 255, 0.94), rgba(255, 255, 255, 0.94)), url('/hospital.jpg'); background-size: cover; background-position: center 25%; background-attachment: fixed; background-color: #f8fafc; }
+
+.brand-header-horizontal { display: flex; align-items: center; justify-content: center; gap: 2.2rem; padding: 3.5rem 2rem 3rem 2rem; animation: fadeInDown 0.8s ease-out; }
+@keyframes fadeInDown { 0% { opacity: 0; transform: translateY(-20px); } 100% { opacity: 1; transform: translateY(0); } }
+
+.sidebar-logo { width: 180px; mix-blend-mode: multiply; margin-bottom: 0.2rem; filter: brightness(1.1); }
+.header-logo-large { height: 110px; width: auto; mix-blend-mode: multiply; filter: brightness(1.05); }
+.header-text-group { text-align: left; display: flex; flex-direction: column; gap: 4px; border-left: 3px solid #e2e8f0; padding-left: 2rem; }
+.hospital-name-header { margin: 0; font-size: 2.5rem; font-weight: 800; color: #1e293b; letter-spacing: 1px; line-height: 1.1; }
+.hospital-tagline { margin: 0; color: #94a3b8; font-size: 1.15rem; font-weight: 600; letter-spacing: 0.5px; font-style: normal; text-transform: uppercase; }
+
+.tab-content { padding: 0 4rem 4rem 4rem; position: relative; z-index: 5; }
+body:has(.dashboard-layout) { background-image: none; background-color: #f8fafc; }
+
+/* Dashboard Patient Steps Additions */
+.step-indicator { display: flex; justify-content: center; align-items: center; margin-bottom: 2rem; gap: 10px; font-weight: 600; color: #cbd5e1; }
+.step-indicator span { padding: 0.5rem 1rem; border-radius: 20px; transition: 0.3s; }
+.step-indicator span.active { color: var(--primary-cyan); background: #e0f2fe; }
+.step-indicator .line { height: 2px; width: 40px; background: #cbd5e1; }
+
+.registration-panel { background: white; padding: 2.5rem; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.04); max-width: 900px; margin: 0 auto; }
+.search-section { background: #f1f5f9; padding: 2rem; border-radius: 16px; margin-bottom: 2rem; text-align: center; }
+.search-input { flex: 1; padding: 1.2rem; border: 2px solid transparent; border-radius: 12px; font-size: 1.2rem; }
+.search-input:focus { border-color: var(--primary-orange); }
+.search-form { display: flex; gap: 1rem; max-width: 600px; margin: 0 auto; }
+
+.action-btn { padding: 1.2rem 2rem; border: none; border-radius: 12px; font-weight: 700; font-size: 1.1rem; cursor: pointer; color: white; transition: 0.3s; }
+.search-btn { background: var(--primary-orange); }
+.search-btn:hover { background: #e76f51; box-shadow: 0 8px 15px rgba(244, 162, 97, 0.3); }
+
+.form-card { border: 1px solid #e2e8f0; padding: 2rem; border-radius: 16px; margin-top: 1.5rem; }
+.grid-form { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+.form-group { display: flex; flex-direction: column; }
+.form-group label { margin-bottom: 0.5rem; font-weight: 600; color: #475569; }
+.form-group input, .custom-select { padding: 1rem; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 1rem; outline: none; background: #f8fafc; font-family: 'Poppins'; }
+.form-group input:focus, .custom-select:focus { border-color: var(--primary-cyan); background: white; }
+
+.submit-btn { background: var(--primary-cyan); width: 100%; margin-top: 1rem; }
+.submit-btn:hover { background: var(--primary-cyan-hover); }
+
+.cancel-btn { background: white; border: 2px solid #e2e8f0; color: #64748b; padding: 0.8rem 1.5rem; border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.3s; }
+.cancel-btn:hover { background: #f1f5f9; border-color: #cbd5e1; }
+.back-card-btn { width: auto; min-width: 220px; padding: 0.8rem 1.5rem; background: #e0f2fe; color: #0369a1; border: 2px solid #bae6fd; border-radius: 12px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; }
+.back-card-btn:hover { background: #bae6fd; transform: translateY(-2px); }
+.add-family-btn { background: var(--primary-cyan); color: white; border: none; padding: 1rem 1.8rem; border-radius: 12px; font-weight: 700; font-size: 1.1rem; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 12px rgba(0, 180, 216, 0.2); }
+.add-family-btn:hover { background: var(--primary-cyan-hover); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 180, 216, 0.3); }
+
+.patient-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
+.patient-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 20px; padding: 2rem; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.02); }
+.patient-card:hover { border-color: var(--primary-cyan); transform: translateY(-3px); box-shadow: 0 12px 25px rgba(0, 180, 216, 0.12); }
+.patient-card h4 { margin: 0 0 1rem 0; font-size: 1.2rem; }
+.patient-dets { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1.5rem; font-size: 0.95rem; }
+.results-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid #f1f5f9; }
+
+/* SERVICES CSS */
+.selected-patient-box { background: #e0f2fe; color: #0369a1; padding: 1rem; border-radius: 10px; }
+.service-options { display: flex; gap: 1rem; margin-top: 1rem; }
+.service-card { flex: 1; border: 2px solid #e2e8f0; padding: 1.2rem; border-radius: 14px; text-align: center; cursor: pointer; transition: 0.3s; background: white; }
+.service-card:hover { border-color: var(--primary-cyan); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 180, 216, 0.1); }
+.service-card.active { border-color: var(--primary-cyan); background: #f0f9ff; }
+.service-card h3 { margin: 0 0 0.2rem 0; font-size: 1.3rem; color: var(--text-main); }
+.service-card p { margin: 0; color: var(--text-muted); font-size: 0.95rem; }
+.price-section { margin-top: 1.2rem; background: #f1f5f9; padding: 0.8rem 1.2rem; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #e2e8f0; }
+.price-display { display: flex; flex-direction: row; gap: 12px; align-items: center; }
+.price-display h2 { font-size: 1.4rem !important; }
+.price-display span { font-size: 1rem; color: #475569; font-weight: 600; }
+.edit-link { font-size: 0.8rem; color: var(--primary-orange); cursor: pointer; margin-left: 10px; font-weight: 500; text-decoration: underline; }
+.small-input { padding: 0.5rem; width: 100px; border-radius: 6px; border: 1px solid #cbd5e1; }
+.btn-sm { background: var(--primary-cyan); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; }
+
+/* PAYMENT CSS */
+.payment-box { text-align: center; max-width: 500px; margin: 0 auto; }
+.bill-summary { background: #f0fdf4; padding: 1.5rem; border-radius: 14px; margin-bottom: 1.5rem; border: 2px dashed #86efac; }
+.bill-summary h1 { color: #166534; font-size: 2.2rem; margin: 0; }
+.bill-summary h3 { margin: 0 0 5px 0; color: #15803d; font-size: 1.2rem; }
+.payment-options { display: flex; gap: 0.8rem; justify-content: center; margin-bottom: 1.5rem; }
+.pay-btn { flex: 1; padding: 1rem 0.5rem; border: 2px solid #e2e8f0; background: white; border-radius: 10px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: 0.2s; }
+.pay-btn.active { background: var(--primary-cyan); color: white; border-color: var(--primary-cyan); }
+
+/* RECEIPT CSS */
+.receipt-actions { display: flex; justify-content: flex-end; gap: 1rem; margin-bottom: 2rem; }
+.receipt-paper { background: white; max-width: 400px; margin: 0 auto; padding: 2rem; border: 1px solid #e2e8f0; box-shadow: 0 10px 30px rgba(0,0,0,0.05); font-family: monospace; color: black; }
+.receipt-header { text-align: center; margin-bottom: 1.5rem; }
+.receipt-logo { width: 60px; filter: grayscale(100%); margin-bottom: 10px; }
+.receipt-header h2 { margin: 0 0 5px 0; font-size: 1.1rem; font-weight: 800; }
+.receipt-header p { margin: 0; font-size: 0.8rem; }
+.divider { border-top: 1.5px solid #000; margin: 0.8rem 0; }
+.title-row { text-align: center; }
+.title-row h2 { margin: 0 0 5px 0; text-transform: uppercase; font-size: 1.5rem; }
+.appt-no { font-size: 3rem; margin: 0; font-weight: 800; border: 2px solid black; display: inline-block; padding: 5px 20px; border-radius: 10px;}
+.receipt-details p { margin: 8px 0; font-size: 0.95rem; }
+.doctor-box { margin-top: 1rem; padding-top: 1rem; border-top: 1px dotted black; }
+.receipt-footer { text-align: center; font-size: 0.9rem; }
+.fee-line { font-size: 1.2rem; margin-bottom: 5px; }
+
+.fade-in { animation: fadeIn 0.4s ease forwards; }
+
+/* ================= PRINT MEDIA QUERY ================= */
+@media print {
+  @page {
+    size: auto; /* Let browser or printer decide page size */
+    margin: 10mm;
+  }
+
+  body { background: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .no-print, .sidebar, .top-banner, .top-banner p, .top-banner h1, .dashboard-bg::before { display: none !important; }
+  .dashboard-layout { display: block !important; height: auto !important; background: transparent !important; }
+  .main-content { padding: 0 !important; background: transparent !important; position: static !important; }
+  .registration-panel { box-shadow: none !important; padding: 0 !important; max-width: 100% !important; margin: 0 !important; background: transparent !important; border: none !important; }
+  
+  /* Make the Receipt Print Small and Compact on One Page */
+  .receipt-paper { border: none !important; box-shadow: none !important; width: 100%; max-width: 400px; margin: 0 auto; padding: 0; display: block; page-break-inside: avoid; break-inside: avoid; }
+  
+  .receipt-header h2 { font-size: 1.2rem; margin: 0 0 5px 0; }
+  .receipt-header p { font-size: 0.85rem; margin: 0; }
+  .appt-no { font-size: 2.5rem; margin: 10px 0; border: 2px solid black; padding: 5px 20px; border-radius: 8px; display: inline-block; }
+  .title-row h2 { font-size: 1.2rem; margin-top: 10px; }
+  .receipt-details p { font-size: 0.95rem; margin: 5px 0; line-height: 1.3; }
+  .doctor-box { font-size: 0.95rem; margin-top: 8px; padding-top: 8px; }
+  .fee-line { font-size: 1.1rem; font-weight: bold; margin-bottom: 5px; }
+  .receipt-footer p { font-size: 0.85rem; margin: 5px 0; line-height: 1.2; }
+  
+  .receipt-logo { filter: grayscale(100%); width: 60px; margin-bottom: 5px; }
+  .divider { margin: 10px 0; }
+}
