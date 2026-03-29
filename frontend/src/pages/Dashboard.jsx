@@ -6,12 +6,17 @@ import toast from 'react-hot-toast';
 import PatientRegistration from '../components/PatientRegistration';
 import ManageServices from '../components/ManageServices';
 import DoctorManagement from '../components/DoctorManagement';
+import StaffManagement from '../components/StaffManagement';
+import AttendanceManagement from '../components/AttendanceManagement';
+import OtherServices from '../components/OtherServices';
 import '../index.css';
 
 function Dashboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
-  const [activeTab, setActiveTab] = useState('registration');
+  const [activeTab, setActiveTab] = useState(() => {
+    return localStorage.getItem('wellmed_activeTab') || 'registration';
+  });
   const [registrationKey, setRegistrationKey] = useState(0);
   const [currentStep, setCurrentStep] = useState(1);
 
@@ -26,6 +31,7 @@ function Dashboard() {
       setCurrentStep(1);
     }
     setActiveTab(tab);
+    localStorage.setItem('wellmed_activeTab', tab);
   };
 
   useEffect(() => {
@@ -65,16 +71,26 @@ function Dashboard() {
             className={`menu-item ${activeTab === 'registration' ? 'active' : ''}`}
             onClick={() => handleTabClick('registration')}
           >
-            <span className="menu-icon">👥</span> Patient Visits
+            <span className="menu-icon">👥</span> OPD/Channelling
           </button>
-          <button className="menu-item disabled"><span className="menu-icon">📆</span> Appointments</button>
           <button 
-            className={`menu-item ${activeTab === 'doctors' ? 'active' : ''}`}
-            onClick={() => handleTabClick('doctors')}
+            className={`menu-item ${activeTab === 'other_services' ? 'active' : ''}`}
+            onClick={() => handleTabClick('other_services')}
           >
-            <span className="menu-icon">🩺</span> Doctor Profiles
+            <span className="menu-icon">⚡</span> Other Services
           </button>
-          <button className="menu-item disabled"><span className="menu-icon">💳</span> Invoices & Billing</button>
+          <button 
+            className={`menu-item ${activeTab === 'staff_management' ? 'active' : ''}`}
+            onClick={() => handleTabClick('staff_management')}
+          >
+            <span className="menu-icon">👨‍⚕️</span> Staff Profiles
+          </button>
+          <button 
+            className={`menu-item ${activeTab === 'attendance' ? 'active' : ''}`}
+            onClick={() => handleTabClick('attendance')}
+          >
+            <span className="menu-icon">✅</span> Daily Attendance
+          </button>
           <button 
             className={`menu-item ${activeTab === 'settings' ? 'active' : ''}`}
             onClick={() => handleTabClick('settings')}
@@ -106,7 +122,9 @@ function Dashboard() {
             />
           )}
           {activeTab === 'settings' && <ManageServices />}
-          {activeTab === 'doctors' && <DoctorManagement />}
+          {activeTab === 'staff_management' && <StaffManagement />}
+          {activeTab === 'attendance' && <AttendanceManagement />}
+          {activeTab === 'other_services' && <OtherServices />}
         </div>
       </div>
     </div>

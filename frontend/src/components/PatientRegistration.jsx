@@ -114,8 +114,9 @@ export default function PatientRegistration({ onStepChange }) {
   // ================= STEP 1 FUNCTIONS =================
   const handleSearch = async (e) => {
     e.preventDefault();
-    if (!contactNo || contactNo.length < 9) {
-      toast.error('Please enter a valid Phone Number');
+    const phoneRegex = /^[0-9]{10}$/;
+    if (!phoneRegex.test(contactNo)) {
+      toast.error('Invalid Phone Number! Please enter exactly 10 digits (e.g., 0771234567).', { icon: '📞' });
       return;
     }
     
@@ -151,7 +152,16 @@ export default function PatientRegistration({ onStepChange }) {
     e.preventDefault();
     const loadingId = toast.loading('Registering new patient...');
     try {
-      const patientData = { contactNo, name, age, weight, height, birthday, gender, registeredAt: new Date().toISOString() };
+      const patientData = { 
+        contactNo: contactNo.trim(), 
+        name: name.trim(), 
+        age: Number(age), 
+        weight: weight.trim(), 
+        height: height.trim(), 
+        birthday, 
+        gender, 
+        registeredAt: new Date().toISOString() 
+      };
       const docRef = await addDoc(collection(db, 'patients'), patientData);
       
       toast.success(`Patient ${name} registered! Moving to services...`, { id: loadingId });
@@ -339,7 +349,7 @@ export default function PatientRegistration({ onStepChange }) {
 
                 {weight && height && getBMIDetails(weight, height) && (
                   <div style={{ gridColumn: '1 / -1', background: getBMIDetails(weight, height).color + '1A', color: getBMIDetails(weight, height).color, padding: '0.8rem', borderRadius: '10px', textAlign: 'center', border: `1px solid ${getBMIDetails(weight, height).color}40`, fontWeight: '600' }}>
-                    📊 Computed BMI: <span style={{fontSize:'1.2rem'}}>{getBMIDetails(weight, height).bmi}</span> ({getBMIDetails(weight, height).status})
+                    Computed BMI: <span style={{fontSize:'1.2rem'}}>{getBMIDetails(weight, height).bmi}</span> ({getBMIDetails(weight, height).status})
                   </div>
                 )}
 
@@ -390,7 +400,7 @@ export default function PatientRegistration({ onStepChange }) {
 
                 {weight && height && getBMIDetails(weight, height) && (
                   <div style={{ gridColumn: '1 / -1', background: getBMIDetails(weight, height).color + '1A', color: getBMIDetails(weight, height).color, padding: '0.8rem', borderRadius: '10px', textAlign: 'center', border: `1px solid ${getBMIDetails(weight, height).color}40`, fontWeight: '600' }}>
-                    📊 Computed BMI: <span style={{fontSize:'1.2rem'}}>{getBMIDetails(weight, height).bmi}</span> ({getBMIDetails(weight, height).status})
+                    Computed BMI: <span style={{fontSize:'1.2rem'}}>{getBMIDetails(weight, height).bmi}</span> ({getBMIDetails(weight, height).status})
                   </div>
                 )}
 
