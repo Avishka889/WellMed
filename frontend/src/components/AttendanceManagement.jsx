@@ -36,6 +36,19 @@ const AttendanceRow = ({ member, att, onSave, onRemove }) => {
     setIsSaving(false);
   };
 
+  const handleReEnter = async () => {
+    setIsSaving(true);
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2, '0');
+    const mm = String(now.getMinutes()).padStart(2, '0');
+    const currentTime = `${hh}:${mm}`;
+    setInTime(currentTime);
+    setOutTime('');
+    // PASS NULL AS recordId TO CREATE A NEW FRESH RECORD FOR THE SECOND SHIFT
+    await onSave(member, null, currentTime, '');
+    setIsSaving(false);
+  };
+
   const handleManualSave = async () => {
     if (!inTime && !outTime) {
       toast.error('Please enter an In-Time or Out-Time first.');
@@ -60,16 +73,16 @@ const AttendanceRow = ({ member, att, onSave, onRemove }) => {
   return (
     <div className="fade-in" style={{
       display:'flex', justifyContent:'space-between', alignItems:'center', 
-      padding:'1.5rem 2rem', background:'white', borderRadius:'20px',
-      boxShadow:'0 4px 6px -1px rgba(0,0,0,0.05)', border:'1px solid #f1f5f9',
+      padding:'1.5rem', background:'white', borderRadius:'10px',
+      border:'1px solid #e2e8f0',
       width: '100%', boxSizing: 'border-box', flexWrap: 'wrap', gap: '1.5rem'
     }}>
       {/* Left: Info */}
       <div style={{display:'flex', gap:'1.5rem', alignItems:'center', minWidth: '300px'}}>
-        <img src={member.photoUrl || 'https://via.placeholder.com/150'} alt="pic" style={{width:'64px', height:'64px', borderRadius:'16px', objectFit:'cover', border:'2px solid var(--primary-cyan)', padding:'2px', background:'white'}} />
+        <img src={member.photoUrl || 'https://via.placeholder.com/150'} alt="pic" style={{width:'50px', height:'50px', borderRadius:'8px', objectFit:'cover', border:'1px solid #cbd5e1'}} />
         <div>
-          <h4 style={{margin:0, fontSize:'1.25rem', color:'#1e293b'}}>{member.name}</h4>
-          <div style={{fontSize:'1rem', color:'#64748b', fontWeight:'600', marginTop:'4px'}}>
+          <h4 style={{margin:0, fontSize:'1.1rem', color:'#0f172a', fontWeight:'700'}}>{member.name}</h4>
+          <div style={{fontSize:'0.9rem', color:'#64748b', fontWeight:'500', marginTop:'4px'}}>
             {member.category === 'doctor' ? member.specialization : member.role}
             {member.category === 'doctor' ? ` • ${member.docType}` : ''}
           </div>
@@ -77,48 +90,45 @@ const AttendanceRow = ({ member, att, onSave, onRemove }) => {
       </div>
 
       {/* Right: Actions */}
-      <div style={{display:'flex', gap:'1.5rem', alignItems:'center', flexWrap: 'wrap'}}>
+      <div style={{display:'flex', gap:'1rem', alignItems:'center', flexWrap: 'wrap'}}>
          
          {!isManual ? (
            // MAIN QUICK BUTTONS UI
-           <div style={{display:'flex', gap:'15px', alignItems:'center'}}>
+           <div style={{display:'flex', gap:'10px', alignItems:'center'}}>
              {!inTime ? (
-               <button onClick={handleMarkIn} disabled={isSaving} style={{background:'var(--primary-cyan)', color:'white', padding:'10px 20px', borderRadius:'12px', border:'none', cursor:'pointer', fontWeight:'800', boxShadow:'0 4px 10px -2px rgba(6,182,212,0.4)', transition:'0.2s'}}>✅ MARK IN</button>
+               <button onClick={handleMarkIn} disabled={isSaving} style={{background:'#16a34a', color:'white', padding:'8px 20px', borderRadius:'6px', border:'none', cursor:'pointer', fontWeight:'600', transition:'0.2s'}}>Mark In</button>
              ) : (
                <div style={{display:'flex', flexDirection:'column', alignItems:'center'}}>
-                 <span style={{color:'#166534', fontWeight:'800', fontSize:'0.9rem', background:'#dcfce7', padding:'8px 12px', borderRadius:'10px'}}>IN: {formatAMPM(inTime)}</span>
+                 <span style={{color:'#334155', fontWeight:'600', fontSize:'0.85rem', border:'1px solid #cbd5e1', padding:'6px 12px', borderRadius:'6px', background:'#f8fafc'}}>In: {formatAMPM(inTime)}</span>
                </div>
              )}
 
              {inTime && !outTime ? (
-               <button onClick={handleMarkOut} disabled={isSaving} style={{background:'#cf2a27', color:'white', padding:'10px 20px', borderRadius:'12px', border:'none', cursor:'pointer', fontWeight:'800', boxShadow:'0 4px 10px -2px rgba(207,42,39,0.4)', transition:'0.2s'}}>🔴 MARK OUT</button>
+               <button onClick={handleMarkOut} disabled={isSaving} style={{background:'#dc2626', color:'white', padding:'8px 20px', borderRadius:'6px', border:'none', cursor:'pointer', fontWeight:'700', transition:'0.2s'}}>Mark Out</button>
              ) : outTime ? (
-               <div style={{display:'flex', flexDirection:'column', alignItems:'center'}}>
-                 <span style={{color:'#991b1b', fontWeight:'800', fontSize:'0.9rem', background:'#fee2e2', padding:'8px 12px', borderRadius:'10px'}}>OUT: {formatAMPM(outTime)}</span>
+               <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
+                 <span style={{color:'#334155', fontWeight:'600', fontSize:'0.85rem', border:'1px solid #cbd5e1', padding:'6px 12px', borderRadius:'6px', background:'#f8fafc'}}>In: {formatAMPM(inTime)} → Out: {formatAMPM(outTime)}</span>
+                 <button onClick={handleReEnter} disabled={isSaving} style={{background:'#16a34a', color:'white', padding:'8px 16px', borderRadius:'6px', border:'none', cursor:'pointer', fontWeight:'700', fontSize:'0.85rem', transition:'0.2s'}}>Re-enter Shift</button>
                </div>
              ) : null}
 
-             <button onClick={() => setIsManual(true)} style={{background:'#f1f5f9', color:'#475569', padding:'10px 16px', borderRadius:'12px', border:'none', cursor:'pointer', fontWeight:'700', marginLeft:'10px'}}>✏️ Manual Entry</button>
-             
-             {att && (
-               <button onClick={() => onRemove(att.id, member.id)} style={{background:'transparent', border:'none', textDecoration:'underline', color:'#ef4444', fontSize:'0.85rem', cursor:'pointer', marginLeft:'10px'}}>Clear</button>
-             )}
+             <button onClick={() => setIsManual(true)} style={{background:'transparent', color:'#475569', padding:'8px 16px', borderRadius:'6px', border:'1px solid #cbd5e1', cursor:'pointer', fontWeight:'600', marginLeft:'5px'}}>Manual</button>
            </div>
          ) : (
            // MANUAL OVERRIDE UI
-           <div className="fade-in" style={{display:'flex', gap:'15px', alignItems:'center', background:'#f8fafc', padding:'15px 25px', borderRadius:'16px', border:'1px solid #e2e8f0'}}>
+           <div className="fade-in" style={{display:'flex', gap:'15px', alignItems:'center', background:'#f8fafc', padding:'12px 20px', borderRadius:'8px', border:'1px solid #e2e8f0'}}>
              <div style={{display:'flex', flexDirection:'column', gap:'5px'}}>
-               <label style={{fontSize:'0.85rem', color:'#64748b', fontWeight:'700'}}>In Time</label>
-               <input type="time" value={inTime} onChange={(e)=>setInTime(e.target.value)} style={{padding:'8px', borderRadius:'10px', border:'1.5px solid #cbd5e1', outline:'none', fontFamily:'inherit'}} />
+               <label style={{fontSize:'0.8rem', color:'#64748b', fontWeight:'600'}}>In Time</label>
+               <input type="time" value={inTime} onChange={(e)=>setInTime(e.target.value)} style={{padding:'6px', borderRadius:'6px', border:'1px solid #cbd5e1', outline:'none', fontFamily:'inherit'}} />
              </div>
              
              <div style={{display:'flex', flexDirection:'column', gap:'5px'}}>
-               <label style={{fontSize:'0.85rem', color:'#64748b', fontWeight:'700'}}>Out Time</label>
-               <input type="time" value={outTime} onChange={(e)=>setOutTime(e.target.value)} style={{padding:'8px', borderRadius:'10px', border:'1.5px solid #cbd5e1', outline:'none', fontFamily:'inherit'}} />
+               <label style={{fontSize:'0.8rem', color:'#64748b', fontWeight:'600'}}>Out Time</label>
+               <input type="time" value={outTime} onChange={(e)=>setOutTime(e.target.value)} style={{padding:'6px', borderRadius:'6px', border:'1px solid #cbd5e1', outline:'none', fontFamily:'inherit'}} />
              </div>
 
-             <div style={{display:'flex', flexDirection:'column', gap:'8px', marginLeft:'10px', marginTop:'15px'}}>
-               <button onClick={handleManualSave} disabled={isSaving} style={{background:'var(--primary-cyan)', color:'white', padding:'8px 16px', borderRadius:'10px', border:'none', cursor:'pointer', fontWeight:'700'}}>💾 Update</button>
+             <div style={{display:'flex', gap:'8px', marginLeft:'10px', marginTop:'15px'}}>
+               <button onClick={handleManualSave} disabled={isSaving} style={{background:'#00B4D8', color:'white', padding:'8px 16px', borderRadius:'6px', border:'none', cursor:'pointer', fontWeight:'700'}}>Save</button>
                <button onClick={() => {
                  setIsManual(false);
                  setInTime(att?.inTime || '');
@@ -137,9 +147,16 @@ export default function AttendanceManagement() {
   const [doctors, setDoctors] = useState([]);
   const [staff, setStaff] = useState([]);
   const [attendance, setAttendance] = useState({}); 
+  const [allAttendanceToday, setAllAttendanceToday] = useState([]); // NEW: Store ALL records for the day
   const [loading, setLoading] = useState(true);
 
   const today = new Date().toLocaleDateString('en-CA');
+
+  // OPD Session definitions: { label, endHour, endMin, checkAfterMin: grace in minutes }
+  const OPD_SESSIONS = [
+    { label: 'Morning Session (7:00 AM – 10:00 AM)', endHour: 10, endMin: 0, checkAfterMin: 30 },
+    { label: 'Evening Session (4:00 PM – 8:00 PM)',  endHour: 20, endMin: 0, checkAfterMin: 30 },
+  ];
 
   const [logView, setLogView] = useState('today');
   const [reportDate, setReportDate] = useState(today);
@@ -212,22 +229,51 @@ export default function AttendanceManagement() {
       const q = query(collection(db, 'attendance'), where('date', '==', today));
       const attSnap = await getDocs(q);
       const attMap = {};
-      attSnap.forEach(a => {
-        const data = a.data();
-        attMap[data.memberId] = { id: a.id, ...data };
+      const sortedRecords = attSnap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
+      
+      setAllAttendanceToday(sortedRecords); // Store ALL for the log view
+      
+      // Store the LATEST record for each member for current dashboard status
+      sortedRecords.forEach(data => {
+        attMap[data.memberId] = data;
       });
       setAttendance(attMap);
 
     } catch (err) {
       toast.error('Failed to load attendance data.');
     } finally {
-      setLoading(false);
+       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchData();
+    const cleanupStaleAttendance = async () => {
+      try {
+        const q = query(collection(db, 'attendance'), where('status', '==', 'Present'));
+        const snap = await getDocs(q);
+        
+        snap.forEach(async (d) => {
+          const data = d.data();
+          if (data.date !== today) {
+             // Auto mark out missed entry from previous days
+             await updateDoc(doc(db, 'attendance', d.id), {
+               outTime: '23:59',
+               status: 'Auto Marked Out'
+             });
+          }
+        });
+      } catch(err) {
+        console.error('Cleanup error', err);
+      }
+    };
+
+    const load = async () => {
+      await cleanupStaleAttendance();
+      await fetchData();
+    };
+    load();
   }, []);
+
 
   const handleSaveAttendance = async (member, recordId, inTime, outTime) => {
     try {
@@ -250,11 +296,15 @@ export default function AttendanceManagement() {
 
       if (recordId) {
         await updateDoc(doc(db, 'attendance', recordId), attData);
-        setAttendance(prev => ({ ...prev, [member.id]: { id: recordId, ...attData } }));
+        const updatedRecord = { id: recordId, ...attData };
+        setAttendance(prev => ({ ...prev, [member.id]: updatedRecord }));
+        setAllAttendanceToday(prev => prev.map(r => r.id === recordId ? updatedRecord : r));
         toast.success(`Updated ${typeLabel} ${member.name}'s Attendance!`);
       } else {
         const res = await addDoc(collection(db, 'attendance'), attData);
-        setAttendance(prev => ({ ...prev, [member.id]: { id: res.id, ...attData } }));
+        const newRecord = { id: res.id, ...attData };
+        setAttendance(prev => ({ ...prev, [member.id]: newRecord }));
+        setAllAttendanceToday(prev => [...prev, newRecord]);
         toast.success(`Saved In-Time for ${typeLabel} ${member.name}!`);
       }
     } catch (err) {
@@ -365,7 +415,7 @@ export default function AttendanceManagement() {
   };
 
   const renderReportsUI = () => {
-    const todayLogs = Object.values(attendance).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    const todayLogs = allAttendanceToday.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
     
     return (
       <div className="form-card fade-in" style={{background:'white', padding:'2.5rem', borderRadius:'20px', boxShadow:'0 4px 6px -1px rgba(0,0,0,0.05)', border:'1px solid #e2e8f0'}}>
@@ -387,10 +437,10 @@ export default function AttendanceManagement() {
              const isActive = logView === view;
              return (
                <button key={view} onClick={() => { setLogView(view); setReportLogs([]); }} style={{
-                 background: isActive ? '#1e293b' : '#f1f5f9',
+                 background: isActive ? '#000000' : '#f1f5f9',
                  color: isActive ? 'white' : '#64748b',
-                 padding: '10px 20px', borderRadius: '12px', border: 'none', cursor: 'pointer',
-                 fontWeight: '800', fontSize: '1rem', transition:'0.2s', boxShadow: isActive ? '0 4px 10px rgba(30,41,59,0.3)' : 'none'
+                 padding: '10px 24px', borderRadius: '12px', border: 'none', cursor: 'pointer',
+                 fontWeight: '800', fontSize: '1rem', transition:'0.2s', boxShadow: isActive ? '0 4px 10px rgba(0,0,0,0.3)' : 'none'
                }}>
                  {labels[view]}
                </button>
@@ -403,7 +453,7 @@ export default function AttendanceManagement() {
              {logView === 'daily' && (
                 <div style={{display:'flex', flexDirection:'column', gap:'5px', flex:1, minWidth:'150px'}}>
                   <label style={{fontWeight:'700', color:'#475569'}}>Select Date</label>
-                  <input type="date" value={reportDate} max={today} onChange={e=>setReportDate(e.target.value)} style={{padding:'10px', borderRadius:'10px', border:'1.5px solid #cbd5e1', outline:'none', fontFamily:'inherit'}} />
+                  <input type="date" value={reportDate} max={today} onChange={e=>setReportDate(e.target.value)} style={{padding:'12px', borderRadius:'12px', border:'2px solid #e2e8f0', background:'white', outline:'none', fontFamily:'inherit', boxShadow:'0 2px 5px rgba(0,0,0,0.02)'}} />
                 </div>
              )}
 
@@ -411,11 +461,11 @@ export default function AttendanceManagement() {
                 <>
                   <div style={{display:'flex', flexDirection:'column', gap:'5px', flex:1, minWidth:'150px'}}>
                     <label style={{fontWeight:'700', color:'#475569'}}>Start Date</label>
-                    <input type="date" value={startDate} max={today} onChange={e=>setStartDate(e.target.value)} style={{padding:'10px', borderRadius:'10px', border:'1.5px solid #cbd5e1', outline:'none', fontFamily:'inherit'}} />
+                    <input type="date" value={startDate} max={today} onChange={e=>setStartDate(e.target.value)} style={{padding:'12px', borderRadius:'12px', border:'2px solid #e2e8f0', background:'white', outline:'none', fontFamily:'inherit', boxShadow:'0 2px 5px rgba(0,0,0,0.02)'}} />
                   </div>
                   <div style={{display:'flex', flexDirection:'column', gap:'5px', flex:1, minWidth:'150px'}}>
                     <label style={{fontWeight:'700', color:'#475569'}}>End Date</label>
-                    <input type="date" value={endDate} max={today} onChange={e=>setEndDate(e.target.value)} style={{padding:'10px', borderRadius:'10px', border:'1.5px solid #cbd5e1', outline:'none', fontFamily:'inherit'}} />
+                    <input type="date" value={endDate} max={today} onChange={e=>setEndDate(e.target.value)} style={{padding:'12px', borderRadius:'12px', border:'2px solid #e2e8f0', background:'white', outline:'none', fontFamily:'inherit', boxShadow:'0 2px 5px rgba(0,0,0,0.02)'}} />
                   </div>
                 </>
              )}
@@ -449,8 +499,8 @@ export default function AttendanceManagement() {
                 </div>
              )}
 
-             <button onClick={generateReport} disabled={isGenerating} style={{background:'var(--primary-cyan)', color:'white', border:'none', padding:'12px 24px', borderRadius:'12px', fontWeight:'800', cursor:'pointer', height:'43px', minWidth:'120px', boxShadow:'0 4px 6px rgba(6,182,212,0.3)', transition:'0.2s'}}>
-                 {isGenerating ? 'Loading...' : '🚀 Generate'}
+             <button onClick={generateReport} disabled={isGenerating} style={{background:'#00B4D8', color:'white', border:'none', padding:'10px 30px', borderRadius:'10px', fontWeight:'700', cursor:'pointer', height:'48px', minWidth:'150px', transition:'0.3s', boxShadow:'0 4px 12px rgba(0,180,216,0.2)'}}>
+                 {isGenerating ? 'Loading...' : 'Generate Report'}
              </button>
           </div>
         )}
@@ -470,7 +520,7 @@ export default function AttendanceManagement() {
              <div className="fade-in" style={{display:'flex', flexDirection:'column', gap:'1rem'}}>
                <div className="print-header" style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'1.5rem', borderBottom:'1px solid #e2e8f0', paddingBottom:'1rem'}}>
                  <h4 style={{margin:0, color:'#1e293b', fontSize:'1.5rem', fontWeight:'800', letterSpacing:'0.5px'}}>Daily Attendance Report: {reportDate}</h4>
-                 <button onClick={()=>window.print()} className="no-print" style={{background:'#1e293b', color:'white', border:'none', padding:'10px 20px', borderRadius:'8px', fontWeight:'700', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px', transition:'0.2s'}}>
+                 <button onClick={()=>window.print()} className="no-print" style={{background:'#00B4D8', color:'white', border:'none', padding:'10px 20px', borderRadius:'8px', fontWeight:'700', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px', transition:'0.2s'}}>
                     Print Report
                  </button>
                </div>
@@ -484,7 +534,7 @@ export default function AttendanceManagement() {
                 <h4 style={{margin:0, color:'#1e293b', fontSize:'1.5rem', textTransform:'uppercase', letterSpacing:'0.5px'}}>
                   {logView === 'category' ? `${reportCategory === 'staff' ? 'Nurses & Staff' : reportCategory + ' Doctors'} Report | ${startDate} to ${endDate}` : `Report: ${getSelectedMemberName()} | ${startDate} to ${endDate}`}
                 </h4>
-                <button onClick={()=>window.print()} className="no-print" style={{background:'#1e293b', color:'white', border:'none', padding:'10px 20px', borderRadius:'8px', fontWeight:'700', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px', transition:'0.2s'}}>
+                <button onClick={()=>window.print()} className="no-print" style={{background:'#00B4D8', color:'white', border:'none', padding:'10px 20px', borderRadius:'8px', fontWeight:'700', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px', transition:'0.2s'}}>
                     Print Report
                 </button>
               </div>
@@ -525,21 +575,20 @@ export default function AttendanceManagement() {
     );
   };
 
-  const getTabStyle = (isActive, isDark = false) => ({
+  const getTabStyle = (isActive) => ({
     flex: 1,
-    background: isActive ? (isDark ? '#1e293b' : 'var(--primary-cyan)') : 'transparent',
-    color: isActive ? 'white' : '#64748b',
+    background: isActive ? '#F4A261' : 'transparent',
+    color: isActive ? 'white' : '#475569',
     border: 'none',
-    padding: '1.2rem',
-    borderRadius: '14px',
+    padding: '1rem',
+    borderRadius: '8px',
     cursor: 'pointer',
-    fontWeight: '700',
-    fontSize: '1.1rem',
-    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-    display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '12px',
-    boxShadow: isActive ? (isDark ? '0 8px 16px -4px rgba(30, 41, 59, 0.4)' : '0 8px 16px -4px rgba(6, 182, 212, 0.4)') : 'none',
+    fontWeight: '600',
+    fontSize: '1rem',
+    transition: 'all 0.2s',
+    display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px',
     outline: 'none',
-    transform: isActive ? 'scale(1.02)' : 'scale(1)'
+    boxShadow: isActive ? '0 4px 10px rgba(244,162,97,0.3)' : 'none'
   });
 
   const opdDoctors = doctors.filter(d => d.docType === 'OPD');
@@ -549,8 +598,8 @@ export default function AttendanceManagement() {
     <div className="registration-panel fade-in">
        <div className="no-print" style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'1.5rem'}}>
          <div>
-           <h2 style={{margin:0, fontSize:'1.6rem', color:'#1e293b'}}>Daily Attendance</h2>
-           <p style={{color:'var(--primary-cyan)', margin:'0.3rem 0 0 0', fontWeight:'700', fontSize:'1.1rem'}}>Date: {today}</p>
+           <h2 style={{margin:0, fontSize:'1.4rem', color:'#0f172a'}}>Daily Attendance</h2>
+           <p style={{color:'#64748b', margin:'0.3rem 0 0 0', fontWeight:'500', fontSize:'0.9rem'}}>{today}</p>
          </div>
        </div>
 
@@ -558,37 +607,37 @@ export default function AttendanceManagement() {
         display:'flex', 
         marginBottom:'2rem', 
         background:'#f8fafc', 
-        padding:'0.8rem', 
-        borderRadius:'20px', 
+        padding:'0.5rem', 
+        borderRadius:'10px', 
         width: '100%',
-        gap: '0.8rem',
-        boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.03), 0 4px 6px -1px rgba(0,0,0,0.05)',
+        gap: '0.5rem',
+        border: '1px solid #e2e8f0',
         boxSizing: 'border-box'
       }}>
         <button onClick={() => setActiveTab('doctors')} style={getTabStyle(activeTab === 'doctors')}>
-          <span style={{fontSize: '1.4rem'}}>👨‍⚕️</span> Doctors
+          Doctors
         </button>
         <button onClick={() => setActiveTab('staff')} style={getTabStyle(activeTab === 'staff')}>
-          <span style={{fontSize: '1.4rem'}}>👩‍⚕️</span> Nurses & Staff
+          Nurses & Staff
         </button>
-        <button onClick={() => setActiveTab('logs')} style={getTabStyle(activeTab === 'logs', true)}>
-          <span style={{fontSize: '1.4rem'}}>📋</span> Logs
+        <button onClick={() => setActiveTab('logs')} style={getTabStyle(activeTab === 'logs')}>
+          Logs & Reports
         </button>
       </div>
 
-       {loading ? <div style={{textAlign:'center', padding:'2rem', color:'#64748b'}}>Loading attendance data...</div> : (
+       {loading ? <div style={{textAlign:'center', padding:'2rem', color:'#64748b'}}>Loading attendance records...</div> : (
          <div className="fade-in">
             {activeTab === 'doctors' && (
               <div style={{display:'flex', flexDirection:'column', gap:'3rem'}}>
                  <div>
-                   <h3 style={{color:'#334155', display:'flex', alignItems:'center', gap:'10px', marginBottom:'1.5rem', fontSize:'1.4rem'}}>
-                     <span style={{fontSize:'1.6rem'}}>🏥</span> OPD Doctors
+                   <h3 style={{color:'#0f172a', marginBottom:'1.5rem', fontSize:'1.2rem', borderBottom:'1px solid #e2e8f0', paddingBottom:'10px'}}>
+                     OPD Doctors
                    </h3>
                    {renderList(opdDoctors)}
                  </div>
-                 <div style={{borderTop:'2px solid #f1f5f9', paddingTop:'2rem'}}>
-                   <h3 style={{color:'#334155', display:'flex', alignItems:'center', gap:'10px', marginBottom:'1.5rem', fontSize:'1.4rem'}}>
-                     <span style={{fontSize:'1.6rem'}}>🩺</span> Channeling Doctors
+                 <div>
+                   <h3 style={{color:'#0f172a', marginBottom:'1.5rem', fontSize:'1.2rem', borderBottom:'1px solid #e2e8f0', paddingBottom:'10px'}}>
+                     Channeling Doctors
                    </h3>
                    {renderList(channelingDoctors)}
                  </div>
@@ -598,6 +647,7 @@ export default function AttendanceManagement() {
             {activeTab === 'logs' && renderReportsUI()}
          </div>
        )}
+
     </div>
   );
 }

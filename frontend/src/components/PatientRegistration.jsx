@@ -62,28 +62,50 @@ export default function PatientRegistration({ onStepChange }) {
   // === STEP 2 STATES (Services) ===
   const [serviceType, setServiceType] = useState(''); // 'OPD' or 'Channeling'
   const [selectedDoctor, setSelectedDoctor] = useState('');
-  const [prices, setPrices] = useState({ opd: 1000, channeling: 2500 });
+  const [prices, setPrices] = useState({ opd: 1000 });
   const [activePrice, setActivePrice] = useState(0);
   const [availableDoctors, setAvailableDoctors] = useState([]);
+  const [attendance, setAttendance] = useState({}); // Today's status (In/Out)
 
   // Fetch doctors and pricing strictly overriding defaults on mount
   useEffect(() => {
     const fetchData = async () => {
       try {
+        const today = new Date().toLocaleDateString('en-CA');
+        
         // Fetch Pricing
         const priceSnap = await getDoc(doc(db, 'settings', 'pricing'));
         if (priceSnap.exists()) {
           setPrices({
-            opd: priceSnap.data().opd_fee || 1000,
-            channeling: priceSnap.data().channeling_fee || 2500
+            opd: priceSnap.data().opd_fee || 1000
           });
         }
         
-        // Fetch Channeling Doctors
-        const q = query(collection(db, 'doctors'), where('type', '==', 'Channeling'));
-        const docSnap = await getDocs(q);
+        // Fetch Today's Attendance to check who is "In"
+        const qAtt = query(collection(db, 'attendance'), where('date', '==', today));
+        const attSnap = await getDocs(qAtt);
+        const attMap = {};
+        attSnap.docs.forEach(d => {
+          const data = d.data();
+          // Keep the latest record for each member
+          if (!attMap[data.memberId] || new Date(data.timestamp) > new Date(attMap[data.memberId].timestamp)) {
+            attMap[data.memberId] = data;
+          }
+        });
+        setAttendance(attMap);
+
+        // Fetch All Doctors and filter by availability if they are "In"
+        const qDoc = query(collection(db, 'doctors'));
+        const docSnap = await getDocs(qDoc);
         const docsList = docSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-        setAvailableDoctors(docsList);
+
+        const activeDocs = docsList.filter(d => 
+          attMap[d.id] && 
+          attMap[d.id].inTime &&
+          !attMap[d.id].outTime
+        );
+        setAvailableDoctors(activeDocs);
+
       } catch (err) {
         console.error("Error fetching data", err);
       }
@@ -114,9 +136,9 @@ export default function PatientRegistration({ onStepChange }) {
   // ================= STEP 1 FUNCTIONS =================
   const handleSearch = async (e) => {
     e.preventDefault();
-    const phoneRegex = /^[0-9]{10}$/;
+    const phoneRegex = /^07[0-9]{8}$/;
     if (!phoneRegex.test(contactNo)) {
-      toast.error('Invalid Phone Number! Please enter exactly 10 digits (e.g., 0771234567).', { icon: '📞' });
+      toast.error('Invalid Contact Number! Must start with 07 (e.g., 0771234567).');
       return;
     }
     
@@ -197,22 +219,103 @@ export default function PatientRegistration({ onStepChange }) {
   };
 
   // ================= STEP 2 FUNCTIONS =================
-  const selectService = (type) => {
+  const selectService = async (type) => {
+    const today = new Date().toLocaleDateString('en-CA');
+    
+    if (type === 'OPD') {
+      const loadingId = toast.loading("Checking OPD availability...");
+      try {
+        // Force fresh attendance fetch on selection
+        const qAtt = query(collection(db, 'attendance'), where('date', '==', today));
+        const attSnap = await getDocs(qAtt);
+        const attMap = {};
+        attSnap.docs.forEach(d => {
+          const data = d.data();
+          if (!attMap[data.memberId] || new Date(data.timestamp) > new Date(attMap[data.memberId].timestamp)) {
+            attMap[data.memberId] = data;
+          }
+        });
+        setAttendance(attMap);
+
+        const opdIn = Object.values(attMap).some(att => 
+          String(att.docType || '').toUpperCase() === 'OPD' && 
+          att.inTime && 
+          !att.outTime
+        );
+
+        if (!opdIn) {
+          toast.error("Selection blocked: No OPD doctor is currently available (checked in).", { id: loadingId, icon: '⚕️' });
+          return;
+        }
+        
+        toast.success("OPD Doctor available.", { id: loadingId });
+        setActivePrice(prices.opd);
+      } catch (err) {
+        toast.error("Failed to verify availability.", { id: loadingId });
+        return;
+      }
+    } else {
+      setActivePrice(0); // For Channeling, reset price until doctor is selected
+    }
+    
     setServiceType(type);
-    setSelectedDoctor(''); // reset doc if switched
-    setActivePrice(type === 'OPD' ? prices.opd : prices.channeling);
+    setSelectedDoctor(''); // Reset when switching types
   };
 
-  const handleProceedToPayment = () => {
+  const handleDoctorChange = (e) => {
+    const docName = e.target.value;
+    setSelectedDoctor(docName);
+    
+    if (serviceType === 'Channeling') {
+      const docObj = availableDoctors.find(d => d.name === docName);
+      if (docObj) {
+        const total = Number(docObj.doctorCharge || 0) + Number(docObj.hospitalCharge || 0);
+        setActivePrice(total);
+      } else {
+        setActivePrice(0);
+      }
+    }
+  };
+
+  const handleProceedToPayment = async () => {
     if (!serviceType) {
       toast.error("Please select a service type");
       return;
     }
-    if (serviceType === 'Channeling' && !selectedDoctor) {
-      toast.error("Please select a Doctor for Channeling");
-      return;
+
+    const today = new Date().toLocaleDateString('en-CA');
+    const loadingId = toast.loading("Verifying staff presence...");
+
+    try {
+      // Re-fetch today's attendance to ensure it's not stale
+      const qAtt = query(collection(db, 'attendance'), where('date', '==', today));
+      const attSnap = await getDocs(qAtt);
+      const attMap = {};
+      attSnap.docs.forEach(d => {
+        const data = d.data();
+        if (!attMap[data.memberId] || new Date(data.timestamp) > new Date(attMap[data.memberId].timestamp)) {
+          attMap[data.memberId] = data;
+        }
+      });
+      setAttendance(attMap);
+
+      if (!selectedDoctor || activePrice === 0) {
+        toast.error(`Process aborted: A ${serviceType} doctor must be selected.`, { id: loadingId, icon: '⚕️' });
+        return;
+      }
+      
+      const selectedDocObj = availableDoctors.find(d => d.name === selectedDoctor);
+      if (!selectedDocObj || !attMap[selectedDocObj.id] || !attMap[selectedDocObj.id].inTime || attMap[selectedDocObj.id].outTime) {
+        toast.error(`Process aborted: ${selectedDoctor} is currently unavailable (not checked in).`, { id: loadingId, icon: '⚕️' });
+        return;
+      }
+
+      toast.success("Staff availability verified.", { id: loadingId });
+      setStep(3);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to verify staff availability. Please check connection.", { id: loadingId });
     }
-    setStep(3);
   };
 
   // ================= STEP 3 FUNCTIONS =================
@@ -253,6 +356,10 @@ export default function PatientRegistration({ onStepChange }) {
       const dailyNumber = await generateAppointmentNumber(serviceType);
       const formattedApptNo = `${serviceType === 'OPD' ? 'OPD' : 'CH'}-${dailyNumber}`;
       
+      const docObj = (serviceType === 'Channeling' && selectedDoctor) 
+        ? availableDoctors.find(d => d.name === selectedDoctor) 
+        : null;
+
       const newVisit = {
         patientId: selectedPatient.id,
         patientName: selectedPatient.name,
@@ -263,7 +370,10 @@ export default function PatientRegistration({ onStepChange }) {
         height: selectedPatient.height,
         serviceType,
         doctor: selectedDoctor || 'N/A',
+        specialization: docObj ? docObj.specialization : '',
         amount: activePrice,
+        doctorCharge: docObj ? Number(docObj.doctorCharge || 0) : 0,
+        hospitalCharge: docObj ? Number(docObj.hospitalCharge || 0) : (serviceType === 'OPD' ? activePrice : 0),
         paymentMethod,
         appointmentNo: formattedApptNo,
         date: new Date().toLocaleDateString(),
@@ -319,11 +429,24 @@ export default function PatientRegistration({ onStepChange }) {
               <div className="patient-cards">
                 {patientsList.map(p => (
                   <div key={p.id} className="patient-card" onClick={() => { setSelectedPatient(p); setWeight(p.weight); setHeight(p.height); }}>
+                    <span className="patient-name-header">Patient Name</span>
                     <h4>{p.name}</h4>
-                    <div className="patient-dets">
-                      <span><b>Gender:</b> {p.gender}</span><span><b>Age:</b> {p.age}</span><span><b>Weight:</b> {p.weight}kg</span><span><b>Height:</b> {p.height}cm</span>
+                    
+                    <span className="details-topic">Details</span>
+                    <div className="card-field">
+                      <span className="card-label">Gender:</span> <span className="card-value">{p.gender}</span>
                     </div>
-                    <div style={{color:'var(--primary-cyan)', fontSize:'0.85rem', fontWeight:'600'}}>Click to Select</div>
+                    <div className="card-field">
+                      <span className="card-label">Age:</span> <span className="card-value">{p.age}</span>
+                    </div>
+                    <div className="card-field">
+                      <span className="card-label">Weight:</span> <span className="card-value">{p.weight}kg</span>
+                    </div>
+                    <div className="card-field">
+                      <span className="card-label">Height:</span> <span className="card-value">{p.height}cm</span>
+                    </div>
+                    
+                    <div style={{color:'var(--primary-cyan)', fontSize:'0.85rem', fontWeight:'700', marginTop:'12px'}}>Click to Select</div>
                   </div>
                 ))}
               </div>
@@ -420,30 +543,34 @@ export default function PatientRegistration({ onStepChange }) {
             <b>Patient:</b> {selectedPatient?.name} | {selectedPatient?.contactNo}
           </div>
           
-          <h3 style={{marginTop:'1.5rem'}}>Select Category</h3>
+          <h3 style={{marginTop:'1.5rem', fontWeight:'800'}}>Select Category</h3>
           <div className="service-options">
-            <div className={`service-card ${serviceType==='OPD'?'active':''}`} onClick={()=>selectService('OPD')}>
+            <div className={`service-card ${serviceType==='OPD'?'active':''}`} style={{padding:'0.8rem 1rem'}} onClick={()=>selectService('OPD')}>
               <h3>OPD</h3>
               <p>General Consultation</p>
             </div>
-            <div className={`service-card ${serviceType==='Channeling'?'active':''}`} onClick={()=>selectService('Channeling')}>
+            <div className={`service-card ${serviceType==='Channeling'?'active':''}`} style={{padding:'0.8rem 1rem'}} onClick={()=>selectService('Channeling')}>
               <h3>Channeling</h3>
               <p>Specialist Doctor</p>
             </div>
           </div>
 
-          {serviceType === 'Channeling' && (
+          {serviceType && (
             <div className="form-group fade-in" style={{marginTop:'1.5rem'}}>
-              <label>Select Doctor</label>
-              <select value={selectedDoctor} onChange={(e)=>setSelectedDoctor(e.target.value)} className="custom-select">
-                <option value="">-- Choose a Doctor --</option>
-                {availableDoctors.map((docData) => (
+              <label>Select {serviceType} Doctor</label>
+              <select value={selectedDoctor} onChange={handleDoctorChange} className="custom-select" required>
+                <option value="">-- Choose {serviceType === 'OPD' ? 'an OPD' : 'a Specialist'} Doctor --</option>
+                {availableDoctors
+                  .filter(d => d.type === serviceType)
+                  .map((docData) => (
                    <option key={docData.id} value={docData.name}>
-                     {docData.name} ({docData.specialization})
+                     {docData.name} {docData.specialization ? `(${docData.specialization})` : ''}
                    </option>
                 ))}
               </select>
-              <small style={{color:'#64748b'}}>* Only doctors registered as 'Channeling' are listed here.</small>
+              {availableDoctors.filter(d => d.type === serviceType).length === 0 && (
+                <small style={{color:'#dc2626', fontWeight:'700'}}>⚠️ No active {serviceType} doctors available in attendance.</small>
+              )}
             </div>
           )}
 
@@ -456,8 +583,8 @@ export default function PatientRegistration({ onStepChange }) {
                 </h2>
               </div>
               <div style={{ display:'flex', gap:'1rem' }}>
-                <button className="cancel-btn" style={{ flex: 1 }} onClick={() => setStep(1)}>Back</button>
-                <button className="action-btn submit-btn" style={{ flex: 2, margin: 0 }} onClick={handleProceedToPayment}>Proceed to Payment</button>
+                <button className="cancel-btn" style={{ flex: 1, padding:'0.7rem 1.2rem', fontSize:'0.9rem' }} onClick={() => setStep(1)}>Back</button>
+                <button className="action-btn submit-btn" style={{ flex: 2, margin: 0, padding:'0.7rem 1.2rem', fontSize:'0.95rem', borderRadius:'10px' }} onClick={handleProceedToPayment}>Proceed to Payment</button>
               </div>
             </div>
           )}
@@ -493,8 +620,8 @@ export default function PatientRegistration({ onStepChange }) {
           </div>
 
           <div style={{ display:'flex', gap:'1rem', marginTop: '2rem' }}>
-            <button className="cancel-btn" style={{flex:1}} onClick={() => setStep(2)}>Back</button>
-            <button className="action-btn submit-btn" style={{flex:2, margin:0}} onClick={confirmVisit}>
+            <button className="cancel-btn" style={{flex:1, padding:'0.7rem 1.2rem', fontSize:'0.9rem'}} onClick={() => setStep(2)}>Back</button>
+            <button className="action-btn submit-btn" style={{flex:2, margin:0, padding:'0.7rem 1.2rem', fontSize:'0.95rem', borderRadius:'10px'}} onClick={confirmVisit}>
               Confirm & Generate Receipt
             </button>
           </div>
@@ -512,7 +639,7 @@ export default function PatientRegistration({ onStepChange }) {
           <div className="receipt-paper">
             <div className="receipt-header">
               <img src="/logo.png" alt="Logo" className="receipt-logo" />
-              <h2>WellMed Specialist-Led Care</h2>
+              <h2>WellMed</h2>
               <p>Specialist Medical & Diabetic Care</p>
               <div className="divider"></div>
             </div>
@@ -536,7 +663,7 @@ export default function PatientRegistration({ onStepChange }) {
               
               {visitRecord.serviceType === 'Channeling' && (
                 <div className="doctor-box">
-                  <b>Doctor:</b> {visitRecord.doctor}
+                  <b>Doctor:</b> {visitRecord.doctor} {visitRecord.specialization ? `(${visitRecord.specialization})` : ''}
                 </div>
               )}
             </div>

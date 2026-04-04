@@ -5,14 +5,17 @@ import toast from 'react-hot-toast';
 
 export default function ManageServices() {
   const [opdFee, setOpdFee] = useState('');
-  const [channelingFee, setChannelingFee] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
   // Additional Services Management
   const [procedures, setProcedures] = useState([]);
+  const STANDARD_PROCEDURES = ["ECG", "IV", "Wound Dressing", "Nebulizing", "Oxygen Catheter", "Sutures", "Saline"];
+  const [isCustomProc, setIsCustomProc] = useState(false);
   const [newProcName, setNewProcName] = useState('');
   const [newProcPrice, setNewProcPrice] = useState('');
   const [newProcType, setNewProcType] = useState('Fixed'); // 'Fixed' or 'Variable'
+  const [docFee, setDocFee] = useState('');
+  const [nurseFee, setNurseFee] = useState('');
   const [subTab, setSubTab] = useState('pricing'); // 'pricing' or 'procedures'
   const [editingProcId, setEditingProcId] = useState(null);
 
@@ -23,7 +26,6 @@ export default function ManageServices() {
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           setOpdFee(docSnap.data().opd_fee || 1000);
-          setChannelingFee(docSnap.data().channeling_fee || 2500);
         }
         
         // Fetch Additional Procedures
@@ -43,8 +45,7 @@ export default function ManageServices() {
     const loadingId = toast.loading("Saving global pricing...");
     try {
       await setDoc(doc(db, 'settings', 'pricing'), {
-        opd_fee: Number(opdFee),
-        channeling_fee: Number(channelingFee)
+        opd_fee: Number(opdFee)
       });
       toast.success("Default pricing updated!", { id: loadingId });
     } catch (err) {
@@ -73,11 +74,13 @@ export default function ManageServices() {
       const proc = {
         name: newProcName.trim(),
         price: newProcType === 'Variable' ? 0 : Number(newProcPrice),
-        type: newProcType
+        type: newProcType,
+        docFee: Number(docFee) || 0,
+        nurseFee: Number(nurseFee) || 0
       };
       const docRef = await addDoc(collection(db, 'clinical_procedures'), proc);
       setProcedures([...procedures, { id: docRef.id, ...proc }]);
-      setNewProcName(''); setNewProcPrice('');
+      setNewProcName(''); setNewProcPrice(''); setDocFee(''); setNurseFee(''); setIsCustomProc(false);
       toast.success("Procedure added successfully!", { id: loadingId });
     } catch (err) {
       toast.error("Failed to add procedure.", { id: loadingId });
@@ -87,8 +90,11 @@ export default function ManageServices() {
   const handleEditClick = (proc) => {
     setEditingProcId(proc.id);
     setNewProcName(proc.name);
+    setIsCustomProc(!STANDARD_PROCEDURES.includes(proc.name));
     setNewProcPrice(proc.price);
     setNewProcType(proc.type);
+    setDocFee(proc.docFee || '');
+    setNurseFee(proc.nurseFee || '');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -99,12 +105,14 @@ export default function ManageServices() {
       const updatedData = {
         name: newProcName.trim(),
         price: newProcType === 'Variable' ? 0 : Number(newProcPrice),
-        type: newProcType
+        type: newProcType,
+        docFee: Number(docFee) || 0,
+        nurseFee: Number(nurseFee) || 0
       };
       await updateDoc(procRef, updatedData);
       setProcedures(procedures.map(p => p.id === editingProcId ? { id: p.id, ...updatedData } : p));
       setEditingProcId(null);
-      setNewProcName(''); setNewProcPrice('');
+      setNewProcName(''); setNewProcPrice(''); setDocFee(''); setNurseFee(''); setIsCustomProc(false);
       toast.success("Procedure updated successfully!", { id: loadingId });
     } catch (err) {
       toast.error("Update failed.", { id: loadingId });
@@ -114,8 +122,11 @@ export default function ManageServices() {
   const cancelEdit = () => {
     setEditingProcId(null);
     setNewProcName('');
+    setIsCustomProc(false);
     setNewProcPrice('');
     setNewProcType('Fixed');
+    setDocFee('');
+    setNurseFee('');
   };
 
   const handleDeleteProcedure = async (id) => {
@@ -138,20 +149,30 @@ export default function ManageServices() {
         <p style={{color: '#64748b'}}>Configure standard fees and clinical procedures.</p>
       </div>
 
-      <div style={{display:'flex', gap:'1rem', marginBottom:'2.5rem'}} className="no-print">
+      <div style={{display:'flex', gap:'1rem', marginBottom:'2.5rem', justifyContent: 'center'}} className="no-print">
          <button 
-           className={`action-btn ${subTab === 'pricing' ? 'submit-btn' : 'cancel-btn'}`} 
-           onClick={() => setSubTab('pricing')}
-           style={{flex:1, padding:'1.2rem', margin:0, borderRadius:'15px', border: subTab==='pricing' ? 'none' : '2px solid #e2e8f0'}}
-         >
-           Global Default Fees
-         </button>
-         <button 
-           className={`action-btn ${subTab === 'procedures' ? 'submit-btn' : 'cancel-btn'}`} 
+           className="action-btn" 
            onClick={() => setSubTab('procedures')}
-           style={{flex:1, padding:'1.2rem', margin:0, borderRadius:'15px', border: subTab==='procedures' ? 'none' : '2px solid #e2e8f0'}}
+           style={{
+             background: subTab==='procedures' ? '#F4A261' : 'white', 
+             color: subTab==='procedures' ? 'white' : '#475569', 
+             padding:'0.7rem 1.5rem', margin:0, borderRadius:'12px', border: subTab==='procedures' ? 'none' : '2px solid #e2e8f0',
+             fontSize: '0.95rem', width: 'auto'
+           }}
          >
            Manage Clinical Procedures
+         </button>
+         <button 
+           className="action-btn" 
+           onClick={() => setSubTab('pricing')}
+           style={{
+             background: subTab==='pricing' ? '#F4A261' : 'white', 
+             color: subTab==='pricing' ? 'white' : '#475569', 
+             padding:'0.7rem 1.5rem', margin:0, borderRadius:'12px', border: subTab==='pricing' ? 'none' : '2px solid #e2e8f0',
+             fontSize: '0.95rem', width: 'auto'
+           }}
+         >
+           Global Default Fees
          </button>
       </div>
 
@@ -164,11 +185,9 @@ export default function ManageServices() {
                 <label>OPD Consultation (LKR)</label>
                 <input type="number" value={opdFee} onChange={e => setOpdFee(e.target.value)} required style={{fontSize:'1.2rem'}} />
               </div>
-              <div className="form-group" style={{gridColumn:'1 / -1'}}>
-                <label>Channeling Fee (LKR)</label>
-                <input type="number" value={channelingFee} onChange={e => setChannelingFee(e.target.value)} required style={{fontSize:'1.2rem'}} />
-              </div>
-              <button type="submit" className="action-btn submit-btn" style={{gridColumn:'1 / -1', margin:0, padding:'1.2rem'}}>Save Defaults</button>
+              <div style={{gridColumn:'1 / -1', display:'flex', justifyContent:'center', marginTop:'1.5rem'}}>
+                 <button type="submit" className="action-btn submit-btn" style={{margin:0, padding:'0.8rem 2.5rem', background: '#00B4D8', width: 'auto', borderRadius:'10px'}}>Save Defaults</button>
+               </div>
              </form>
           </div>
         )}
@@ -179,11 +198,40 @@ export default function ManageServices() {
             <form onSubmit={handleAddProcedure} className="grid-form" style={{marginBottom:'2rem', paddingBottom:'2rem', borderBottom:'2px solid #f1f5f9'}}>
               <div className="form-group" style={{gridColumn:'1 / -1'}}>
                 <label>Procedure Name</label>
-                <input type="text" placeholder="e.g. ECG" value={newProcName} onChange={e=>setNewProcName(e.target.value)} required />
+                <select 
+                  className="custom-select" 
+                  value={isCustomProc ? 'Other' : (newProcName && STANDARD_PROCEDURES.includes(newProcName) ? newProcName : (newProcName ? 'Other' : ''))}
+                  onChange={(e) => {
+                    if (e.target.value === 'Other') {
+                      setIsCustomProc(true);
+                      setNewProcName('');
+                    } else {
+                      setIsCustomProc(false);
+                      setNewProcName(e.target.value);
+                    }
+                  }}
+                  required={!isCustomProc}
+                >
+                  <option value="" disabled>-- Select a Procedure --</option>
+                  {STANDARD_PROCEDURES.map(proc => <option key={proc} value={proc}>{proc}</option>)}
+                  <option value="Other">Other Procedure (Type Manually...)</option>
+                </select>
+                
+                {isCustomProc && (
+                  <div className="fade-in" style={{marginTop:'10px'}}>
+                    <input 
+                      type="text" 
+                      placeholder="Type custom procedure name..." 
+                      value={newProcName} 
+                      onChange={e => setNewProcName(e.target.value)} 
+                      required 
+                    />
+                  </div>
+                )}
               </div>
               <div className="form-group">
                 <label>Price Type</label>
-                <select value={newProcType} onChange={e=>setNewProcType(e.target.value)} className="custom-select">
+                <select value={newProcType} onChange={e=>{setNewProcType(e.target.value); setDocFee(''); setNurseFee('');}} className="custom-select">
                   <option value="Fixed">Fixed Price</option>
                   <option value="Variable">Enter at Billing (Variable)</option>
                 </select>
@@ -192,12 +240,24 @@ export default function ManageServices() {
                 <label>Default Price (LKR)</label>
                 <input type="number" placeholder="0" value={newProcPrice} onChange={e=>setNewProcPrice(e.target.value)} disabled={newProcType==='Variable'} required={newProcType==='Fixed'} />
               </div>
-              <div style={{gridColumn:'1 / -1', display:'flex', gap:'10px'}}>
-                <button type="submit" className="action-btn submit-btn" style={{flex:2, margin:0, background: editingProcId ? '#16a34a' : 'var(--primary-cyan)', padding:'1.1rem'}}>
+              <div className="form-group" style={{gridColumn:'1 / -1', display: newProcType === 'Variable' ? 'flex' : 'grid', gridTemplateColumns:'1fr 1fr', gap:'1.5rem', background:'#f0fdf4', padding:'1rem', borderRadius:'10px', border:'1px solid #bbf7d0', flexDirection:'column'}}>
+                {newProcType === 'Fixed' && (
+                  <div style={{display:'flex', flexDirection:'column'}}>
+                    <label>Doctor's Cut (LKR)</label>
+                    <input type="number" placeholder="0" value={docFee} onChange={e=>setDocFee(e.target.value)} required />
+                  </div>
+                )}
+                <div style={{display:'flex', flexDirection:'column', flex: 1}}>
+                  <label>Nurse's Cut {newProcType === 'Variable' ? '(%)' : '(LKR)'}</label>
+                  <input type="number" placeholder="0" value={nurseFee} onChange={e=>setNurseFee(e.target.value)} required />
+                </div>
+              </div>
+              <div style={{gridColumn:'1 / -1', display:'flex', gap:'10px', justifyContent:'center', marginTop:'1rem'}}>
+                <button type="submit" className="action-btn" style={{width: 'auto', margin:0, background: '#00B4D8', padding:'0.8rem 2.5rem', borderRadius: '10px', color:'white', border:'none', fontWeight:'700', cursor:'pointer'}}>
                   {editingProcId ? 'Save Changes' : '+ Add New Procedure'}
                 </button>
                 {editingProcId && (
-                  <button type="button" className="cancel-btn" style={{flex:1}} onClick={cancelEdit}>Cancel</button>
+                  <button type="button" className="cancel-btn" style={{padding: '0.8rem 1.5rem'}} onClick={cancelEdit}>Cancel</button>
                 )}
               </div>
             </form>
@@ -213,6 +273,9 @@ export default function ManageServices() {
                         <div style={{fontWeight:'700', color:'#1e293b', fontSize:'1.1rem'}}>{p.name}</div>
                         <div style={{fontSize:'0.9rem', color:p.type==='Fixed'?'#16a34a':'#0284c7', marginTop:'4px', fontWeight:'600'}}>
                            {p.type === 'Fixed' ? `Rs. ${p.price}.00` : 'Manual Entry'}
+                        </div>
+                        <div style={{fontSize:'0.85rem', color:'#64748b', marginTop:'4px'}}>
+                           {p.type==='Variable' ? `Nurse Cut: ${p.nurseFee}% | (Doc fee added at billing)` : `Doc: ${p.docFee} LKR | Nurse: ${p.nurseFee} LKR`}
                         </div>
                       </div>
                       <div style={{display:'flex', gap:'5px'}}>

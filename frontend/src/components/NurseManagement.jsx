@@ -51,10 +51,10 @@ export default function NurseManagement() {
   };
 
   const validateForm = () => {
-    // Phone validation
-    const phoneRegex = /^[0-9]{10}$/;
+    // Phone validation (07XXXXXXXX)
+    const phoneRegex = /^07[0-9]{8}$/;
     if (!phoneRegex.test(phone)) {
-      toast.error("Invalid Phone Number! Please enter exactly 10 digits (e.g., 0771234567).", { icon: '📞' });
+      toast.error("Invalid Phone Number! Must start with 07 and be 10 digits (e.g., 0771234567).");
       return false;
     }
 
@@ -152,8 +152,8 @@ export default function NurseManagement() {
           <p style={{color:'#64748b', margin:0}}>Manage non-doctor staff members</p>
         </div>
         {!showForm && (
-          <button className="action-btn search-btn" onClick={() => setShowForm(true)} style={{width:'auto', padding: '1rem 2rem', fontSize: '1.1rem'}}>
-            Add New Staff Member
+          <button className="action-btn" onClick={() => setShowForm(true)} style={{width:'auto', padding: '0.8rem 2rem', background:'#00B4D8', borderRadius:'12px', color:'white', border:'none', fontWeight:'700', cursor:'pointer'}}>
+            + Add New Staff Member
           </button>
         )}
       </div>
@@ -173,6 +173,7 @@ export default function NurseManagement() {
               <label>Role / Position</label>
               <select value={role} onChange={e=>setRole(e.target.value)} className="custom-select" required>
                 <option value="Nurse">Nurse</option>
+                <option value="Training Nurse">Training Nurse</option>
                 <option value="Receptionist">Receptionist</option>
                 <option value="Lab Technician">Lab Technician</option>
                 <option value="Pharmacist">Pharmacist</option>
@@ -220,29 +221,27 @@ export default function NurseManagement() {
           ) : staffList.map(doc => (
             <div key={doc.id} className="fade-in" style={{
               display:'flex', justifyContent:'space-between', alignItems:'center', 
-              padding:'1.5rem 2rem', background:'white', borderRadius:'20px',
-              boxShadow:'0 4px 6px -1px rgba(0,0,0,0.05)', border:'1px solid #f1f5f9',
-              width: '100%', boxSizing: 'border-box'
+              padding:'1.2rem 2rem', background:'white', borderRadius:'16px',
+              boxShadow:'0 4px 12px rgba(0,0,0,0.03)', border:'1.5px solid #e2e8f0',
+              width: '100%', boxSizing: 'border-box',
+              borderLeft: '6px solid #00B4D8'
             }}>
               <div style={{display:'flex', gap:'1.5rem', alignItems:'center'}}>
-                <img src={doc.photoUrl} alt="staff" style={{width:'64px', height:'64px', borderRadius:'16px', objectFit:'cover', border:'2px solid var(--primary-cyan)', padding:'2px', background:'white'}} />
+                <img src={doc.photoUrl} alt="staff" style={{width:'64px', height:'64px', borderRadius:'14px', objectFit:'cover', border:'1px solid #e2e8f0', background:'#f8fafc'}} />
                 <div>
-                  <h4 style={{margin:0, fontSize:'1.25rem', color:'#1e293b'}}>{doc.name}</h4>
-                  <p style={{margin:0, color:'var(--primary-cyan)', fontWeight:'700', fontSize:'1rem', marginTop:'4px'}}>{doc.role}</p>
-                  <div style={{marginTop:'5px', color:'#64748b', fontSize:'0.9rem', display:'flex', gap:'1rem'}}>
-                    <div>📞 {doc.phone}</div>
-                    <div style={{opacity:0.8}}>🆔 {doc.idNumber}</div>
-                    <div style={{opacity:0.8}}>📍 {doc.address}</div>
+                  <h4 style={{margin:0, fontSize:'1.2rem', color:'#0f172a', fontWeight:'700'}}>{doc.name}</h4>
+                  <p style={{margin:0, color:'#0369a1', fontWeight:'600', fontSize:'0.9rem', marginTop:'2px', textTransform:'uppercase', letterSpacing:'0.5px'}}>{doc.role}</p>
+                  <div style={{marginTop:'8px', color:'#94a3b8', fontSize:'0.85rem', display:'flex', gap:'1.2rem', flexWrap:'wrap'}}>
+                    <div style={{display:'flex', alignItems:'center', gap:'5px'}}><span style={{fontWeight:'700', color:'#475569'}}>TEL:</span> {doc.phone}</div>
+                    <div style={{display:'flex', alignItems:'center', gap:'5px'}}><span style={{fontWeight:'700', color:'#475569'}}>NIC:</span> {doc.idNumber}</div>
+                    <div style={{display:'flex', alignItems:'center', gap:'5px'}}><span style={{fontWeight:'700', color:'#475569'}}>LOC:</span> {doc.address}</div>
                   </div>
                 </div>
               </div>
               <div style={{display:'flex', alignItems:'center', gap:'15px'}}>
-                 <span style={{background: '#f0f9ff', color: '#0369a1', padding:'8px 16px', borderRadius:'12px', fontSize:'0.85rem', fontWeight:'800', letterSpacing:'0.5px'}}>
-                  {doc.role.toUpperCase()}
-                </span>
                 <div style={{display:'flex', gap:'8px'}}>
-                  <button onClick={() => handleEdit(doc)} className="btn-sm" style={{background:'#f1f5f9', color:'#475569', padding:'8px 16px', borderRadius:'10px', fontWeight:'600'}}>Edit</button>
-                  <button onClick={() => handleDelete(doc.id)} className="btn-sm" style={{background:'#fee2e2', color:'#dc2626', padding:'8px 16px', borderRadius:'10px', fontWeight:'600'}}>Delete</button>
+                  <button onClick={() => handleEdit(doc)} style={{background:'#f1f5f9', color:'#475569', padding:'8px 16px', borderRadius:'8px', border:'none', fontSize:'0.85rem', fontWeight:'700', cursor:'pointer', transition:'0.2s'}}>Edit</button>
+                  <button onClick={() => handleDelete(doc.id)} style={{background:'#fee2e2', color:'#ef4444', padding:'8px 16px', borderRadius:'8px', border:'none', fontSize:'0.85rem', fontWeight:'700', cursor:'pointer', transition:'0.2s'}}>Delete</button>
                 </div>
               </div>
             </div>

@@ -2,18 +2,27 @@
 
 :root {
   --primary-cyan: #00B4D8;
-  --primary-cyan-hover: #0096C7;
+  --primary-cyan-hover: #0096b4;
   --primary-orange: #F4A261;
+  --primary-orange-hover: #e76f51;
+  --bg-main: #f8fafc;
   --text-main: #1e293b;
   --text-muted: #64748b;
-  --bg-color: #f8fafc;
+  --sidebar-w: 260px;
+}
+
+@media print {
+  @page { margin: 0 !important; size: auto; }
+  body { margin: 0 !important; padding: 1.5cm !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; background: white !important; }
+  .no-print { display: none !important; }
+  .receipt-paper { margin: 0 auto !important; box-shadow: none !important; border: none !important; width: 100% !important; max-width: 450px !important; }
 }
 
 body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
-  background-image: url('/bg.jpg');
+  background-image: url('/bg.png');
   background-position: center top; 
   background-size: cover;
   background-attachment: fixed;
@@ -66,7 +75,7 @@ body {
 .logout-btn:hover { background: #dc2626; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(220, 38, 38, 0.25); color: white; }
 
 .main-content { flex: 1; padding: 0; overflow-y: auto; position: relative; }
-.dashboard-bg { background: linear-gradient(rgba(255, 255, 255, 0.94), rgba(255, 255, 255, 0.94)), url('/hospital.jpg'); background-size: cover; background-position: center 25%; background-attachment: fixed; background-color: #f8fafc; }
+.dashboard-bg { background: linear-gradient(rgba(255, 255, 255, 0.94), rgba(255, 255, 255, 0.94)), url('/bg.png'); background-size: cover; background-position: center 25%; background-attachment: fixed; background-color: #f8fafc; }
 
 .brand-header-horizontal { display: flex; align-items: center; justify-content: center; gap: 2rem; padding: 4rem 2rem 3rem 2rem; animation: fadeInDown 0.8s ease-out; }
 @keyframes fadeInDown { 0% { opacity: 0; transform: translateY(-20px); } 100% { opacity: 1; transform: translateY(0); } }
@@ -88,9 +97,9 @@ body:has(.dashboard-layout) { background-image: none; background-color: #f8fafc;
 
 .registration-panel { background: white; padding: 2.5rem; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.04); max-width: 900px; margin: 0 auto; }
 .search-section { background: #f1f5f9; padding: 2rem; border-radius: 16px; margin-bottom: 2rem; text-align: center; }
-.search-input { flex: 1; padding: 1.2rem; border: 2px solid transparent; border-radius: 12px; font-size: 1.2rem; }
-.search-input:focus { border-color: var(--primary-orange); }
-.search-form { display: flex; gap: 1rem; max-width: 600px; margin: 0 auto; }
+.search-form { display: flex; gap: 0.8rem; max-width: 650px; margin: 0 auto; background: white; padding: 6px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); border: 1.5px solid #e2e8f0; }
+.search-input { flex: 1; padding: 0.9rem 1.4rem; border: none; border-radius: 12px; font-size: 1.1rem; background: transparent; outline: none; transition: 0.2s; }
+.search-input:focus { background: #f8fafc; }
 
 .action-btn { padding: 1.2rem 2rem; border: none; border-radius: 12px; font-weight: 700; font-size: 1.1rem; cursor: pointer; color: white; transition: 0.3s; }
 .search-btn { background: var(--primary-orange); }
@@ -110,27 +119,33 @@ body:has(.dashboard-layout) { background-image: none; background-color: #f8fafc;
 .cancel-btn:hover { background: #f1f5f9; border-color: #cbd5e1; }
 .back-card-btn { width: auto; min-width: 220px; padding: 0.8rem 1.5rem; background: #e0f2fe; color: #0369a1; border: 2px solid #bae6fd; border-radius: 12px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; }
 .back-card-btn:hover { background: #bae6fd; transform: translateY(-2px); }
-.add-family-btn { background: var(--primary-cyan); color: white; border: none; padding: 1rem 1.8rem; border-radius: 12px; font-weight: 700; font-size: 1.1rem; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 12px rgba(0, 180, 216, 0.2); }
-.add-family-btn:hover { background: var(--primary-cyan-hover); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 180, 216, 0.3); }
+.add-family-btn { background: var(--primary-cyan); color: white; border: none; padding: 0.7rem 1.4rem; border-radius: 10px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: 0.3s; }
+.add-family-btn:hover { background: var(--primary-cyan-hover); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0, 180, 216, 0.2); }
 
-.patient-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
-.patient-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 20px; padding: 2rem; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.02); }
-.patient-card:hover { border-color: var(--primary-cyan); transform: translateY(-3px); box-shadow: 0 12px 25px rgba(0, 180, 216, 0.12); }
-.patient-card h4 { margin: 0 0 1rem 0; font-size: 1.2rem; }
-.patient-dets { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1.5rem; font-size: 0.95rem; }
+.patient-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; }
+.patient-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 1.5rem; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -2px rgba(0,0,0,0.05); position: relative; overflow: hidden; }
+.patient-card::before { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: linear-gradient(90deg, var(--primary-cyan), var(--primary-orange)); opacity: 0.8; transition: opacity 0.3s; }
+.patient-card:hover { border-color: #cbd5e1; transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1); }
+.patient-card:hover::before { opacity: 1; height: 6px; }
+
+.patient-card .patient-name-header { color: #64748b; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 4px; display: block; }
+.patient-card h4 { margin: 0 0 1rem 0; font-size: 1.4rem; color: #0f172a; font-weight: 800; text-transform: capitalize; letter-spacing: 0.2px; padding-bottom: 12px; border-bottom: 2px dashed #e2e8f0; }
+
+.patient-card .details-topic { font-weight: 700; color: var(--primary-cyan); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; display: inline-block; background: #e0f2fe; padding: 4px 10px; border-radius: 6px; }
+.patient-card .card-field { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 0.95rem; background: #f8fafc; padding: 6px 12px; border-radius: 8px; }
+.patient-card .card-label { font-weight: 600; color: #64748b; font-size: 0.9rem; }
+.patient-card .card-value { color: #0f172a; font-weight: 700; }
 .results-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid #f1f5f9; }
 
 /* SERVICES CSS */
 .selected-patient-box { background: #e0f2fe; color: #0369a1; padding: 1rem; border-radius: 10px; }
 .service-options { display: flex; gap: 1rem; margin-top: 1rem; }
-.service-card { flex: 1; border: 2px solid #e2e8f0; padding: 1.2rem; border-radius: 14px; text-align: center; cursor: pointer; transition: 0.3s; background: white; }
-.service-card:hover { border-color: var(--primary-cyan); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 180, 216, 0.1); }
-.service-card.selected { border-color: var(--primary-cyan); background: #f0f9ff; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 180, 216, 0.1); }
-.check-indicator { width: 24px; height: 24px; border-radius: 50%; border: 2px solid #e2e8f0; position: relative; transition: 0.3s; }
-.check-indicator.checked { background: var(--primary-cyan); border-color: var(--primary-cyan); }
-.check-indicator.checked::after { content: "✓"; color: white; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-weight: 900; font-size: 0.9rem; }
-.service-card h3 { margin: 0 0 0.2rem 0; font-size: 1.3rem; color: var(--text-main); }
-.service-card p { margin: 0; color: var(--text-muted); font-size: 0.95rem; }
+.service-card { flex: 1; border: 1.5px solid #e2e8f0; padding: 1.2rem; border-radius: 16px; text-align: center; cursor: pointer; transition: 0.3s; background: white; font-weight: 700; color: #64748b; }
+.service-card:hover { border-color: var(--primary-orange); transform: translateY(-2px); }
+.service-card.active { border-color: var(--primary-orange); background: #F4A261 !important; color: white !important; box-shadow: 0 8px 20px rgba(244, 162, 97, 0.3); }
+.service-card.active p { color: rgba(255,255,255,0.8) !important; }
+.service-card h3 { margin: 0 0 0.2rem 0; font-size: 1.2rem; transition: 0.2s; }
+.service-card p { margin: 0; font-size: 0.85rem; font-weight: 500; transition: 0.2s; }
 .price-section { margin-top: 1.2rem; background: #f1f5f9; padding: 0.8rem 1.2rem; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #e2e8f0; }
 .price-display { display: flex; flex-direction: row; gap: 12px; align-items: center; }
 .price-display h2 { font-size: 1.4rem !important; }
@@ -146,7 +161,7 @@ body:has(.dashboard-layout) { background-image: none; background-color: #f8fafc;
 .bill-summary h3 { margin: 0 0 5px 0; color: #15803d; font-size: 1.2rem; }
 .payment-options { display: flex; gap: 0.8rem; justify-content: center; margin-bottom: 1.5rem; }
 .pay-btn { flex: 1; padding: 1rem 0.5rem; border: 2px solid #e2e8f0; background: white; border-radius: 10px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: 0.2s; }
-.pay-btn.active { background: var(--primary-cyan); color: white; border-color: var(--primary-cyan); }
+.pay-btn.active { background: var(--primary-orange); color: white; border-color: var(--primary-orange); }
 
 /* RECEIPT CSS */
 .receipt-actions { display: flex; justify-content: flex-end; gap: 1rem; margin-bottom: 2rem; }

@@ -9,6 +9,9 @@ import DoctorManagement from '../components/DoctorManagement';
 import StaffManagement from '../components/StaffManagement';
 import AttendanceManagement from '../components/AttendanceManagement';
 import OtherServices from '../components/OtherServices';
+import PaymentManagement from '../components/PaymentManagement';
+import DailySummary from '../components/DailySummary';
+import SessionAlertWrapper from '../components/SessionAlertWrapper';
 import '../index.css';
 
 function Dashboard() {
@@ -65,40 +68,53 @@ function Dashboard() {
         <div className="sidebar-brand">
           <img src="/logo.png" alt="Logo" className="sidebar-logo" />
         </div>
-        
+
         <div className="sidebar-menu">
-          <button 
+          <button
             className={`menu-item ${activeTab === 'registration' ? 'active' : ''}`}
             onClick={() => handleTabClick('registration')}
           >
-            <span className="menu-icon">👥</span> OPD/Channelling
+            <span className="menu-icon">👥</span> OPD/Channeling
           </button>
-          <button 
+          <button
             className={`menu-item ${activeTab === 'other_services' ? 'active' : ''}`}
             onClick={() => handleTabClick('other_services')}
           >
             <span className="menu-icon">⚡</span> Other Services
           </button>
-          <button 
-            className={`menu-item ${activeTab === 'staff_management' ? 'active' : ''}`}
-            onClick={() => handleTabClick('staff_management')}
-          >
-            <span className="menu-icon">👨‍⚕️</span> Staff Profiles
-          </button>
-          <button 
+          <button
             className={`menu-item ${activeTab === 'attendance' ? 'active' : ''}`}
             onClick={() => handleTabClick('attendance')}
           >
             <span className="menu-icon">✅</span> Daily Attendance
           </button>
-          <button 
+          <button
+            className={`menu-item ${activeTab === 'daily_summary' ? 'active' : ''}`}
+            onClick={() => handleTabClick('daily_summary')}
+          >
+            <span className="menu-icon">📊</span> Daily Updates
+          </button>
+          <button
+            className={`menu-item ${activeTab === 'staff_management' ? 'active' : ''}`}
+            onClick={() => handleTabClick('staff_management')}
+          >
+            <span className="menu-icon">👨‍⚕️</span> Staff Profiles
+          </button>
+          <button
             className={`menu-item ${activeTab === 'settings' ? 'active' : ''}`}
             onClick={() => handleTabClick('settings')}
           >
             <span className="menu-icon">⚙️</span> Manage Services
           </button>
+          <button
+            className={`menu-item ${activeTab === 'payments' ? 'active' : ''}`}
+            onClick={() => handleTabClick('payments')}
+          >
+            <span className="menu-icon">💰</span> Payments
+          </button>
+
         </div>
-        
+
         <button className="logout-btn" onClick={handleLogout}>
           Logout
         </button>
@@ -109,24 +125,27 @@ function Dashboard() {
         <div className="brand-header-horizontal no-print">
           <img src="/logo.png" alt="WellMed" className="header-logo-large" />
           <div className="header-text-group">
-            <h1 className="hospital-name-header">WELLMED SPECIALIST-LED CARE</h1>
-            <p className="hospital-tagline">Specialized Medical & Diabetic Care Unit</p>
+            <h1 className="hospital-name-header">WellMed</h1>
+            <p className="hospital-tagline">Specialist Medical & Diabetic Care</p>
           </div>
         </div>
 
         <div className="tab-content">
           {activeTab === 'registration' && (
-            <PatientRegistration 
-              key={registrationKey} 
-              onStepChange={(step) => setCurrentStep(step)} 
+            <PatientRegistration
+              key={registrationKey}
+              onStepChange={(step) => setCurrentStep(step)}
             />
           )}
           {activeTab === 'settings' && <ManageServices />}
           {activeTab === 'staff_management' && <StaffManagement />}
           {activeTab === 'attendance' && <AttendanceManagement />}
           {activeTab === 'other_services' && <OtherServices />}
+          {activeTab === 'payments' && <PaymentManagement />}
+          {activeTab === 'daily_summary' && <DailySummary />}
         </div>
       </div>
+      <SessionAlertWrapper />
     </div>
   );
 }

@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
-import { auth } from '../firebase';
+import { auth, db } from '../firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import toast from 'react-hot-toast';
 
 function Login() {
@@ -10,66 +11,77 @@ function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  // The actual official owner email for the hospital
-  const officialAdminEmail = "wellmed.medi@gmail.com";
+  const OWNER_EMAIL = "asithaeranga883@gmail.com";
+  const STAFF_EMAIL = "wellmed.medi@gmail.com";
 
   const handleForgotPassword = async (e) => {
     e.preventDefault();
-    const loadingToast = toast.loading("Sending automated reset link to Owner...");
+    if (!username.trim()) {
+      toast.error("Please enter your username first (owner or admin) to receive the reset link.");
+      return;
+    }
+
+    const lowerUser = username.trim().toLowerCase();
+    const targetEmail = lowerUser === 'owner' ? OWNER_EMAIL : STAFF_EMAIL;
+    
+    const loadingToast = toast.loading(`Sending Reset Link to specialized ${lowerUser === 'owner' ? 'Owner' : 'Staff'} account...`);
     try {
-      // Sends a real reset link to the owner's email
-      await sendPasswordResetEmail(auth, officialAdminEmail);
+      await sendPasswordResetEmail(auth, targetEmail);
       toast.success(
         <div>
-          <b>Reset Link Sent!</b><br/>
-          <small>An email has been sent to the Owner (wellmed.medi@gmail.com) to reset the password.</small>
+          <b>Link Sent Successfully!</b><br/>
+          <small>Check your email ({targetEmail}) for the reset instructions.</small>
+          <br/><br/>
+          <small style={{color:'red'}}>Note: If you don't see it, make sure this email is registered in your Firebase Console.</small>
         </div>,
-        { id: loadingToast, duration: 6000 }
+        { id: loadingToast, duration: 8000 }
       );
     } catch (error) {
       console.error(error);
-      toast.error("Failed to send reset email. Please contact the Owner directly.", { id: loadingToast });
+      toast.error(`Error: ${error.message}. Make sure the email is registered in Firebase.`, { id: loadingToast });
     }
   };
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    toast.loading("Authenticating...", { id: 'login-toast' });
+    toast.loading("Verifying Identity...", { id: 'login-toast' });
 
     try {
-      // Smart mapping: If they type 'admin', it actually logs into the owner's Firebase auth account.
-      // If they really typed an email by accident, format it, otherwise map generic admin to official email.
-      const formatEmail = (username.toLowerCase() === 'admin') 
-        ? officialAdminEmail 
-        : (username.includes('@') ? username : `${username}@wellmed.com`);
+      const lowerUser = username.trim().toLowerCase();
+      let formatEmail = "";
       
-      // Attempt Firebase Authentication
+      if (lowerUser === 'owner') formatEmail = OWNER_EMAIL;
+      else if (lowerUser === 'admin' || lowerUser === 'staff') formatEmail = STAFF_EMAIL;
+      else formatEmail = username.includes('@') ? username : `${username}@wellmed.com`;
+      
       await signInWithEmailAndPassword(auth, formatEmail, password);
+
+      // Record Login Activity
+      try {
+        await addDoc(collection(db, 'login_logs'), {
+          username: lowerUser,
+          role: lowerUser === 'owner' ? 'Owner' : 'Staff',
+          email: formatEmail,
+          timestamp: serverTimestamp(),
+          date: new Date().toLocaleDateString('en-CA'),
+          time: new Date().toLocaleTimeString()
+        });
+      } catch (logErr) { console.error("Logging Error:", logErr); }
       
-      toast.success(
-        <div>
-          <b>Welcome to WellMed!</b><br/>
-          <small>Login successful. Accessing Dashboard...</small>
-        </div>,
-        { id: 'login-toast', duration: 3000 }
-      );
+      toast.success(<b>Welcome! Accessing Dashboard...</b>, { id: 'login-toast', duration: 4000 });
       
-      // Navigate to the Dashboard after a smooth delay
       setTimeout(() => {
-        navigate('/dashboard');
-      }, 1000);
+        if (lowerUser === 'owner') navigate('/owner-dashboard');
+        else navigate('/dashboard');
+      }, 800);
 
     } catch (error) {
       console.error("Login Error:", error.code);
-      let errorMessage = "Invalid Username or Password. Please try again.";
-      
+      let errorMessage = "Access Denied. Check your username and password.";
       if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
-        errorMessage = "The username and password you entered did not match our records.";
-      } else if (error.code === 'auth/too-many-requests') {
-        errorMessage = "Access blocked due to multiple failed attempts. Please contact Owner.";
+        errorMessage = "The credentials you entered are incorrect.";
       }
-
       toast.error(errorMessage, { id: 'login-toast', duration: 4000 });
       setIsLoading(false);
     }
@@ -83,43 +95,24 @@ function Login() {
           <h1>WellMed</h1>
           <p className="subtitle">Specialist Medical & Diabetic Care</p>
         </div>
-
         <form onSubmit={handleLogin}>
           <div className="input-group">
             <label>Username</label>
-            <input 
-              type="text" 
-              placeholder="Enter username (e.g. admin)" 
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required 
-              disabled={isLoading}
-            />
+            <input type="text" placeholder="owner or admin" value={username} onChange={(e) => setUsername(e.target.value)} required disabled={isLoading} />
           </div>
-          
           <div className="input-group">
             <label>Password</label>
-            <input 
-              type="password" 
-              placeholder="••••••••" 
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              disabled={isLoading} 
-            />
+            <input type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required disabled={isLoading} />
           </div>
-
           <div className="forgot-password">
             <a href="#" onClick={handleForgotPassword}>Forget Password?</a>
           </div>
-
           <button type="submit" className="login-btn" disabled={isLoading}>
-            {isLoading ? "Checking Details..." : "Login to Admin"}
+            {isLoading ? "Validating..." : "Login to WellMed Dashboard"}
           </button>
         </form>
       </div>
     </div>
   );
 }
-
 export default Login;
