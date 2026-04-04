@@ -11,8 +11,9 @@ function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  const OWNER_EMAIL = "asithaeranga883@gmail.com";
-  const STAFF_EMAIL = "wellmed.medi@gmail.com";
+  // Load emails from environment variables for security
+  const OWNER_EMAIL = import.meta.env.VITE_OWNER_EMAIL;
+  const STAFF_EMAIL = import.meta.env.VITE_STAFF_EMAIL;
 
   const handleForgotPassword = async (e) => {
     e.preventDefault();

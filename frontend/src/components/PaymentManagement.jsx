@@ -55,8 +55,8 @@ export default function PaymentManagement({ bypassPassword = false }) {
   const [pwInput, setPwInput] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
 
-  // Sync with owner account
-  const OWNER_EMAIL = "asithaeranga883@gmail.com";
+  // Load from environment variable
+  const OWNER_EMAIL = import.meta.env.VITE_OWNER_EMAIL;
 
   const [filterMode, setFilterMode] = useState('daily'); 
   const today = new Date().toLocaleDateString('en-CA');
@@ -91,7 +91,6 @@ export default function PaymentManagement({ bypassPassword = false }) {
     setIsVerifying(true);
     const id = toast.loading("Verifying Owner Credentials...");
     try {
-      // Re-authenticate using the owner email and entered password
       await signInWithEmailAndPassword(auth, OWNER_EMAIL, pwInput);
       setAuthenticated(true);
       toast.success("Identity Verified!", { id });
@@ -176,11 +175,6 @@ export default function PaymentManagement({ bypassPassword = false }) {
     return diff > 0 ? Math.round(diff / 60) : 0;
   };
 
-  const getProcDate = (p) => {
-    const val = p.timestamp;
-    return val ? (val?.toDate ? val.toDate() : new Date(val)).toLocaleDateString('en-GB') : '-';
-  };
-
   if (!authenticated) {
     return (
       <div className="registration-panel fade-in" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
@@ -258,11 +252,9 @@ export default function PaymentManagement({ bypassPassword = false }) {
               </div>
             </div>
           )}
-          {/* Detail Lists */}
           <div style={{marginTop:'20px'}}>
              {isAudit ? (
-                /* Staff detail audit display logic... */
-                <p style={{textAlign:'center', color:'#64748b'}}>Generating detail audit view...</p>
+                <p style={{textAlign:'center', color:'#64748b'}}>Use Print button below for detail audit view.</p>
              ) : (
                 <>
                   <h4>Hospital Revenue Summary</h4>

@@ -3,13 +3,13 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCGyzlaWokc0fssXhysO3PEldF2bWFc66M",
-  authDomain: "wellmed-add5c.firebaseapp.com",
-  projectId: "wellmed-add5c",
-  storageBucket: "wellmed-add5c.firebasestorage.app",
-  messagingSenderId: "576555795064",
-  appId: "1:576555795064:web:1914b329989d35a403a38d",
-  measurementId: "G-8W85761JMS"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
 // Initialize Firebase
