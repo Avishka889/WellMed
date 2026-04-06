@@ -78,7 +78,7 @@ const AttendanceRow = ({ member, att, onSave, onRemove }) => {
       width: '100%', boxSizing: 'border-box', flexWrap: 'wrap', gap: '1.5rem'
     }}>
       {/* Left: Info */}
-      <div style={{display:'flex', gap:'1.5rem', alignItems:'center', minWidth: '300px'}}>
+      <div style={{display:'flex', gap:'1rem', alignItems:'center', flex: '1 1 250px'}}>
         <img src={member.photoUrl || 'https://via.placeholder.com/150'} alt="pic" style={{width:'50px', height:'50px', borderRadius:'8px', objectFit:'cover', border:'1px solid #cbd5e1'}} />
         <div>
           <h4 style={{margin:0, fontSize:'1.1rem', color:'#0f172a', fontWeight:'700'}}>{member.name}</h4>
@@ -142,8 +142,8 @@ const AttendanceRow = ({ member, att, onSave, onRemove }) => {
   );
 };
 
-export default function AttendanceManagement() {
-  const [activeTab, setActiveTab] = useState('doctors');
+export default function AttendanceManagement({ ownerView = false }) {
+  const [activeTab, setActiveTab] = useState(ownerView ? 'logs' : 'doctors');
   const [doctors, setDoctors] = useState([]);
   const [staff, setStaff] = useState([]);
   const [attendance, setAttendance] = useState({}); 
@@ -191,7 +191,8 @@ export default function AttendanceManagement() {
 
        if (logView === 'category') {
            if (reportCategory === 'OPD') results = results.filter(r => r.category === 'doctor' && r.docType === 'OPD');
-           if (reportCategory === 'Channeling') results = results.filter(r => r.category === 'doctor' && r.docType === 'Channeling');
+                       if (reportCategory === 'Channelling') results = results.filter(r => r.category === 'doctor' && r.docType === 'Channelling');
+
            if (reportCategory === 'staff') results = results.filter(r => r.category === 'staff');
        }
 
@@ -418,7 +419,7 @@ export default function AttendanceManagement() {
     const todayLogs = allAttendanceToday.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
     
     return (
-      <div className="form-card fade-in" style={{background:'white', padding:'2.5rem', borderRadius:'20px', boxShadow:'0 4px 6px -1px rgba(0,0,0,0.05)', border:'1px solid #e2e8f0'}}>
+      <div className="fade-in" style={{background:'white', padding:ownerView ? '0' : '2.5rem', borderRadius:ownerView ? '0' : '20px', boxShadow:ownerView ? 'none' : '0 4px 6px -1px rgba(0,0,0,0.05)', border:ownerView ? 'none' : '1px solid #e2e8f0'}}>
         <style>{`
           @media print {
             .report-table th, .report-table td { font-size: 0.8rem !important; padding: 0.4rem !important; }
@@ -427,9 +428,11 @@ export default function AttendanceManagement() {
           }
         `}</style>
 
-        <h3 className="no-print" style={{marginBottom:'2rem', display:'flex', alignItems:'center', gap:'10px', color:'#1e293b', fontSize:'1.5rem', fontWeight:'800'}}>
-          Attendance Logs / Reports
-        </h3>
+        {!ownerView && (
+          <h3 className="no-print" style={{marginBottom:'2rem', display:'flex', alignItems:'center', gap:'10px', color:'#1e293b', fontSize:'1.5rem', fontWeight:'800'}}>
+            Attendance Logs / Reports
+          </h3>
+        )}
 
         <div className="no-print" style={{display:'flex', gap:'10px', marginBottom:'2rem', flexWrap:'wrap'}}>
           {['today', 'daily', 'category', 'individual'].map(view => {
@@ -476,7 +479,7 @@ export default function AttendanceManagement() {
                     <label style={{fontWeight:'700', color:'#475569'}}>Category Filter</label>
                     <select value={reportCategory} onChange={e=>setReportCategory(e.target.value)} style={{padding:'12px', borderRadius:'12px', border:'2px solid #e2e8f0', outline:'none', fontFamily:'inherit', background:'white'}}>
                        <option value="OPD">OPD Doctors</option>
-                       <option value="Channeling">Channeling Doctors</option>
+                       <option value="Channelling">Channelling Doctors</option>
                        <option value="staff">Nurses & Staff</option>
                     </select>
                   </div>
@@ -490,8 +493,8 @@ export default function AttendanceManagement() {
                        <optgroup label="OPD Doctors">
                           {doctors.filter(d=>d.docType==='OPD').map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
                        </optgroup>
-                       <optgroup label="Channeling Doctors">
-                          {doctors.filter(d=>d.docType==='Channeling').map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                       <optgroup label="Channelling Doctors">
+                          {doctors.filter(d=>d.docType==='Channelling').map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
                        </optgroup>
                        <optgroup label="Nurses & Staff">
                           {staff.map(d => <option key={d.id} value={d.id}>{d.name} ({d.role})</option>)}
@@ -518,7 +521,7 @@ export default function AttendanceManagement() {
           todayLogs.length === 0 ? <p style={{color:'#64748b'}}>No records saved for today.</p> : (
             <div className="fade-in" style={{display:'flex', flexDirection:'column', gap:'1rem'}}>
                {renderLogsTable(todayLogs.filter(l => l.category === 'doctor' && l.docType === 'OPD'), "OPD Doctors")}
-               {renderLogsTable(todayLogs.filter(l => l.category === 'doctor' && l.docType === 'Channeling'), "Channeling Doctors")}
+               {renderLogsTable(todayLogs.filter(l => l.category === 'doctor' && l.docType === 'Channelling'), "Channelling Doctors")}
                {renderLogsTable(todayLogs.filter(l => l.category === 'staff'), "Nurses & Staff")}
             </div>
           )
@@ -534,7 +537,7 @@ export default function AttendanceManagement() {
                  </button>
                </div>
                {renderLogsTable(reportLogs.filter(l => l.category === 'doctor' && l.docType === 'OPD'), "OPD Doctors")}
-               {renderLogsTable(reportLogs.filter(l => l.category === 'doctor' && l.docType === 'Channeling'), "Channeling Doctors")}
+               {renderLogsTable(reportLogs.filter(l => l.category === 'doctor' && l.docType === 'Channelling'), "Channelling Doctors")}
                {renderLogsTable(reportLogs.filter(l => l.category === 'staff'), "Nurses & Staff")}
              </div>
           ) : (
@@ -601,42 +604,46 @@ export default function AttendanceManagement() {
   });
 
   const opdDoctors = doctors.filter(d => d.docType === 'OPD');
-  const channelingDoctors = doctors.filter(d => d.docType === 'Channeling');
+  const channellingDoctors = doctors.filter(d => d.docType === 'Channelling');
 
   return (
     <div className="registration-panel fade-in">
-       <div className="no-print" style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'1.5rem'}}>
+       <div className="no-print" style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:ownerView ? '0.5rem' : '1.5rem'}}>
          <div>
-           <h2 style={{margin:0, fontSize:'1.4rem', color:'#0f172a'}}>Daily Attendance</h2>
+           <h2 style={{margin:0, fontSize:'1.4rem', color:'#0f172a', whiteSpace:'nowrap'}}>
+             {ownerView ? 'Attendance Audit & Reports' : 'Daily Attendance'}
+           </h2>
            <p style={{color:'#64748b', margin:'0.3rem 0 0 0', fontWeight:'500', fontSize:'0.9rem'}}>{today}</p>
          </div>
        </div>
 
-       <div className="no-print" style={{
-        display:'flex', 
-        marginBottom:'2rem', 
-        background:'#f8fafc', 
-        padding:'0.5rem', 
-        borderRadius:'10px', 
-        width: '100%',
-        gap: '0.5rem',
-        border: '1px solid #e2e8f0',
-        boxSizing: 'border-box'
-      }}>
-        <button onClick={() => setActiveTab('doctors')} style={getTabStyle(activeTab === 'doctors')}>
-          Doctors
-        </button>
-        <button onClick={() => setActiveTab('staff')} style={getTabStyle(activeTab === 'staff')}>
-          Nurses & Staff
-        </button>
-        <button onClick={() => setActiveTab('logs')} style={getTabStyle(activeTab === 'logs')}>
-          Logs & Reports
-        </button>
-      </div>
+       {!ownerView && (
+         <div className="no-print" style={{
+          display:'flex', 
+          marginBottom:'2rem', 
+          background:'#f8fafc', 
+          padding:'0.5rem', 
+          borderRadius:'10px', 
+          width: '100%',
+          gap: '0.5rem',
+          border: '1px solid #e2e8f0',
+          boxSizing: 'border-box'
+        }}>
+          <button onClick={() => setActiveTab('doctors')} style={getTabStyle(activeTab === 'doctors')}>
+            Doctors
+          </button>
+          <button onClick={() => setActiveTab('staff')} style={getTabStyle(activeTab === 'staff')}>
+            Nurses & Staff
+          </button>
+          <button onClick={() => setActiveTab('logs')} style={getTabStyle(activeTab === 'logs')}>
+            Logs & Reports
+          </button>
+        </div>
+       )}
 
        {loading ? <div style={{textAlign:'center', padding:'2rem', color:'#64748b'}}>Loading attendance records...</div> : (
          <div className="fade-in">
-            {activeTab === 'doctors' && (
+            {activeTab === 'doctors' && !ownerView && (
               <div style={{display:'flex', flexDirection:'column', gap:'3rem'}}>
                  <div>
                    <h3 style={{color:'#0f172a', marginBottom:'1.5rem', fontSize:'1.2rem', borderBottom:'1px solid #e2e8f0', paddingBottom:'10px'}}>
@@ -646,13 +653,13 @@ export default function AttendanceManagement() {
                  </div>
                  <div>
                    <h3 style={{color:'#0f172a', marginBottom:'1.5rem', fontSize:'1.2rem', borderBottom:'1px solid #e2e8f0', paddingBottom:'10px'}}>
-                     Channeling Doctors
+                     Channelling Doctors
                    </h3>
                    {renderList(channelingDoctors)}
                  </div>
               </div>
             )}
-            {activeTab === 'staff' && renderList(staff)}
+            {activeTab === 'staff' && !ownerView && renderList(staff)}
             {activeTab === 'logs' && renderReportsUI()}
          </div>
        )}

@@ -300,64 +300,96 @@ export default function OtherServices() {
     return (
       <div className="registration-panel fade-in">
           <div className="receipt-actions no-print">
-            <button className="add-family-btn" onClick={() => window.print()}>Print Service Bill</button>
+            <button className="add-family-btn" onClick={() => window.print()}>🖨️ Print Service Bill</button>
             <button className="cancel-btn" onClick={resetAll}>Done / New Search</button>
           </div>
 
-        <div className="receipt-paper">
-          <div className="receipt-header">
-            <img src="/logo.png" alt="WellMed" className="receipt-logo" />
-            <h2 style={{fontSize:'22pt', margin:'10px 0 0 0', fontWeight:'800'}}>WellMed</h2>
-            <p style={{fontSize:'12pt', margin:'0 0 10px 0', fontWeight:'600'}}>Specialist Medical & Diabetic Care</p>
-            <div className="receipt-address">Tel: 011-2345678 / 077-1234567</div>
-          </div>
-
-          <div className="receipt-divider"></div>
-
-          <div className="receipt-info-grid">
-            <div className="info-item"><span className="label">PATIENT:</span><span className="value">{selectedPatient.name}</span></div>
-            <div className="info-item"><span className="label">PHONE:</span><span className="value">{selectedPatient.contactNo}</span></div>
-            <div className="info-item"><span className="label">DATE:</span><span className="value">{new Date().toLocaleDateString()}</span></div>
-            <div className="info-item"><span className="label">PAID VIA:</span><span className="value" style={{fontWeight:'normal', color:'#000'}}>{paymentMethod.toUpperCase()}</span></div>
-          </div>
-
-          <div className="receipt-divider" style={{borderStyle:'solid'}}></div>
-
-          <div className="receipt-services">
-            <h4 style={{textAlign:'center', margin:'10px 0', textDecoration:'underline'}}>CLINICAL SERVICES</h4>
-            {selectedServices.map(s => {
-              let p = 0; let dCut = 0; let baseAmt = 0;
-              if (s.type === 'Fixed') {
-                 p = Number(s.price);
-              } else {
-                 const manual = procedurePrices[s.id] || { base: 0, doc: 0 };
-                 baseAmt = Number(manual.base) || 0;
-                 dCut = Number(manual.doc) || 0;
-                 p = baseAmt + dCut;
+          <div className="receipt-paper pos-receipt" style={{maxWidth:'320px', margin: '0 auto', background:'white', padding:'25px', color:'black', fontFamily: "'Segoe UI', Roboto, Helvetica, Arial, sans-serif"}}>
+            <style>{`
+              @media print {
+                @page { margin: 0; }
+                body { margin: 0; padding: 20px; }
+                .no-print { display: none !important; }
+                .receipt-paper { box-shadow: none !important; border: none !important; width: 100% !important; margin: 0 !important; }
               }
-              return (
-                <div key={s.id} style={{display:'flex', flexDirection:'column', padding:'5px 0'}}>
-                  <div className="service-row" style={{display:'flex', justifyContent:'space-between'}}>
-                    <span style={{fontWeight:'700'}}>{s.name}</span>
-                    <span style={{fontWeight:'bold'}}>Rs. {(p || 0).toFixed(2)}</span>
+              .pos-divider { border-top: 1.5px dashed #000; margin: 15px 0; }
+              .pos-header { text-align: center; margin-bottom: 20px; }
+              .pos-logo { width: 60px; height: auto; margin-bottom: 8px; filter: grayscale(1); }
+              .pos-hospital { font-size: 1.6rem; font-weight: 900; margin: 0; letter-spacing: -0.5px; }
+              .pos-tagline { font-size: 0.8rem; font-weight: 600; color: #333; margin: 2px 0 0 0; }
+              .pos-token-box { text-align: center; background: #000; color: #fff; padding: 12px; border-radius: 8px; margin: 15px 0; }
+              .pos-token-label { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 4px; opacity: 0.9; }
+              .pos-token-val { font-size: 1.6rem; font-weight: 900; display: block; }
+              .pos-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9rem; }
+              .pos-label { font-weight: 700; color: #000; }
+              .pos-val { font-weight: 500; color: #000; text-align: right; }
+              .pos-footer { text-align: center; margin-top: 25px; font-size: 0.8rem; }
+              .pos-footer p { margin: 4px 0; font-weight: 600; }
+            `}</style>
+
+            <div className="pos-header">
+              <img src="/logo.png" alt="Logo" className="pos-logo" />
+              <h2 className="pos-hospital">WellMed</h2>
+              <p className="pos-tagline">Specialist Medical & Diabetic Care</p>
+            </div>
+
+            <div className="pos-divider"></div>
+
+            <div className="pos-token-box">
+              <span className="pos-token-label">CLINICAL SERVICES</span>
+              <span className="pos-token-val">RECEIPT</span>
+            </div>
+
+            <div className="pos-row" style={{marginTop:'20px'}}>
+              <span className="pos-label">Date:</span>
+              <span className="pos-val">{new Date().toLocaleDateString()}</span>
+            </div>
+
+            <div className="pos-divider"></div>
+
+            <div className="pos-row">
+              <span className="pos-label">Patient:</span>
+              <span className="pos-val" style={{fontWeight:900}}>{selectedPatient.name}</span>
+            </div>
+            <div className="pos-row">
+              <span className="pos-label">Phone:</span>
+              <span className="pos-val">{selectedPatient.contactNo}</span>
+            </div>
+
+            <div className="pos-divider"></div>
+
+            <div style={{margin:'10px 0'}}>
+              {selectedServices.map(s => {
+                let p = 0;
+                if (s.type === 'Fixed') p = Number(s.price);
+                else {
+                  const manual = procedurePrices[s.id] || { base: 0, doc: 0 };
+                  p = (Number(manual.base) || 0) + (Number(manual.doc) || 0);
+                }
+                return (
+                  <div key={s.id} className="pos-row">
+                    <span className="pos-label">{s.name}</span>
+                    <span className="pos-val">Rs. {p.toFixed(2)}</span>
                   </div>
+                );
+              })}
+            </div>
 
-                </div>
-              );
-            })}
+            <div className="pos-row" style={{marginTop:'15px', borderTop:'2px solid #000', paddingTop:'10px'}}>
+              <span className="pos-label" style={{fontSize:'1.1rem'}}>TOTAL (LKR):</span>
+              <span className="pos-val" style={{fontSize:'1.2rem', fontWeight:900}}>Rs. {calculateTotal().toFixed(2)}</span>
+            </div>
+            <div className="pos-row" style={{fontSize:'0.75rem', opacity:0.8}}>
+              <span className="pos-label">Payment:</span>
+              <span className="pos-val">{paymentMethod}</span>
+            </div>
+
+            <div className="pos-footer">
+              <p>Wishing you a fast recovery!</p>
+              <p style={{fontSize:'0.7rem', opacity:0.6}}>wellmed.medi@gmail.com</p>
+              <div style={{marginTop:'15px', fontSize:'0.65rem'}}>*** Printed via WellMed POS System ***</div>
+            </div>
           </div>
-
-          <div className="receipt-divider" style={{borderStyle:'solid', marginTop:'15px'}}></div>
-
-          <div className="total-section" style={{display:'flex', justifyContent:'space-between', padding:'10px 0', fontSize:'1.2rem'}}>
-            <span style={{fontWeight:'800'}}>TOTAL AMOUNT (LKR):</span>
-            <span style={{fontWeight:'800', borderBottom:'3px double #000'}}>Rs. {calculateTotal().toFixed(2)}</span>
-          </div>
-
-          <div className="receipt-footer">
-             <p style={{margin:'20px 0 0 0', fontWeight:'700'}}>*** CLINICAL SERVICE RECEIPT ***</p>
-          </div>
-        </div>
       </div>
     );
   }

@@ -63,7 +63,30 @@ function Dashboard() {
 
   return (
     <div className="dashboard-layout">
-      {/* Sidebar */}
+      {/* Mobile Nav */}
+      <div className="mobile-nav no-print">
+        <button className={`mobile-nav-item ${activeTab === 'registration' ? 'active' : ''}`} onClick={() => handleTabClick('registration')}>
+          <span className="mobile-nav-icon">👥</span>
+          OPD
+        </button>
+        <button className={`mobile-nav-item ${activeTab === 'other_services' ? 'active' : ''}`} onClick={() => handleTabClick('other_services')}>
+          <span className="mobile-nav-icon">⚡</span>
+          Services
+        </button>
+        <button className={`mobile-nav-item ${activeTab === 'daily_summary' ? 'active' : ''}`} onClick={() => handleTabClick('daily_summary')}>
+          <span className="mobile-nav-icon">📊</span>
+          Updates
+        </button>
+        <button className={`mobile-nav-item ${activeTab === 'payments' ? 'active' : ''}`} onClick={() => handleTabClick('payments')}>
+          <span className="mobile-nav-icon">💰</span>
+          Payments
+        </button>
+        <button className="mobile-nav-item" onClick={handleLogout}>
+          <span className="mobile-nav-icon">🚪</span>
+          Exit
+        </button>
+      </div>
+
       <div className="sidebar no-print">
         <div className="sidebar-brand">
           <img src="/logo.png" alt="Logo" className="sidebar-logo" />
@@ -74,7 +97,7 @@ function Dashboard() {
             className={`menu-item ${activeTab === 'registration' ? 'active' : ''}`}
             onClick={() => handleTabClick('registration')}
           >
-            <span className="menu-icon">👥</span> OPD/Channeling
+            <span className="menu-icon">👥</span> OPD/Channelling
           </button>
           <button
             className={`menu-item ${activeTab === 'other_services' ? 'active' : ''}`}

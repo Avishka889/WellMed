@@ -12,7 +12,7 @@ export default function DoctorManagement() {
   // Form States
   const [name, setName] = useState('');
   const [specialization, setSpecialization] = useState('');
-  const [type, setType] = useState('Channeling'); // 'OPD' or 'Channeling'
+  const [type, setType] = useState('Channelling'); // 'OPD' or 'Channelling'
   const [qualifications, setQualifications] = useState('');
   const [photoUrl, setPhotoUrl] = useState('');
   const [birthday, setBirthday] = useState('');
@@ -97,8 +97,8 @@ export default function DoctorManagement() {
         email: email.trim().toLowerCase(),
         photoUrl: photoUrl || 'https://via.placeholder.com/150',
         hourlyRate: type === 'OPD' ? Number(hourlyRate) || 0 : 0,
-        doctorCharge: type === 'Channeling' ? Number(doctorCharge) || 0 : 0,
-        hospitalCharge: type === 'Channeling' ? Number(hospitalCharge) || 0 : 0
+        doctorCharge: type === 'Channelling' ? Number(doctorCharge) || 0 : 0,
+        hospitalCharge: type === 'Channelling' ? Number(hospitalCharge) || 0 : 0
       };
       
       if (editingId) {
@@ -147,7 +147,7 @@ export default function DoctorManagement() {
     setEditingId(null);
     setName('');
     setSpecialization('');
-    setType('Channeling');
+    setType('Channelling');
     setQualifications('');
     setPhotoUrl('');
     setBirthday('');
@@ -196,7 +196,7 @@ export default function DoctorManagement() {
               <label>Service Type</label>
               <select value={type} onChange={e=>setType(e.target.value)} className="custom-select" required>
                   <option value="OPD">OPD Services</option>
-                  <option value="Channeling">Private Channeling</option>
+                  <option value="Channelling">Private Channelling</option>
                 </select>
               </div>
 
@@ -218,7 +218,7 @@ export default function DoctorManagement() {
                     </div>
                   </div>
                   <div style={{fontSize:'0.85rem', color:'#64748b', marginTop:'-10px', marginBottom:'10px'}}>
-                    Total Channeling Fee: <b>Rs. {(Number(doctorCharge) + Number(hospitalCharge)).toFixed(2)}</b>
+                    Total Channelling Fee: <b>Rs. {(Number(doctorCharge) + Number(hospitalCharge)).toFixed(2)}</b>
                   </div>
                 </>
               )}

@@ -8,21 +8,41 @@ function App() {
   return (
     <Router>
       <Toaster 
-        position="top-right" 
+        position="top-center" 
         toastOptions={{
+          duration: 4000,
           style: {
-            padding: '16px',
-            color: '#1e293b',
-            borderRadius: '12px',
-            boxShadow: '0 15px 30px rgba(0,0,0,0.1)',
-            fontFamily: 'Poppins, sans-serif'
+            padding: '20px 32px',
+            color: '#0f172a',
+            background: '#ffffff',
+            borderRadius: '16px',
+            boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
+            fontFamily: 'Poppins, sans-serif',
+            fontSize: '18px',
+            fontWeight: '600',
+            maxWidth: '500px',
+            border: '2px solid #e2e8f0'
           },
           success: {
+            style: {
+              border: '2px solid #10b981',
+              background: '#f0fdf4',
+            },
             iconTheme: {
-              primary: '#00B4D8',
+              primary: '#10b981',
               secondary: '#fff',
             },
           },
+          error: {
+            style: {
+              border: '2px solid #ef4444',
+              background: '#fef2f2',
+            },
+            iconTheme: {
+              primary: '#ef4444',
+              secondary: '#fff',
+            },
+          }
         }} 
       />
       <Routes>
