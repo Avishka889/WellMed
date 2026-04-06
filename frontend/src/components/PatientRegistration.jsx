@@ -601,12 +601,21 @@ export default function PatientRegistration({ onStepChange }) {
       {step === 3 && (
         <div className="fade-in no-print form-card payment-box">
           <h2 style={{textAlign:'center'}}>Payment Gateway</h2>
-          <div className="bill-summary">
-            <h3>{serviceType} {serviceType==='Channeling' ? `(${selectedDoctor})` : ''}</h3>
-            <h1>LKR {activePrice}.00</h1>
+          
+          {/* SLIM SUMMARY BOX */}
+          <div style={{
+            background:'#f8fafc', color:'#0f172a', padding:'0.8rem 1.2rem', borderRadius:'10px',
+            border:'1.5px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+          }}>
+            <h3 style={{margin:0, fontSize:'0.85rem', color:'#64748b', textTransform:'uppercase', letterSpacing:'0.8px'}}>{serviceType} {serviceType==='Channeling' ? `(${selectedDoctor})` : ''}</h3>
+            <h1 style={{margin:0, fontSize:'1.4rem', color:'#0f172a'}}>LKR {activePrice}.00</h1>
           </div>
           
-          <label style={{display:'block', marginBottom:'10px', fontWeight:'bold'}}>Select Payment Method:</label>
+          {/* SPACED PAYMENT LABEL */}
+          <div style={{marginTop:'3.5rem'}}>
+            <label style={{display:'block', marginBottom:'15px', fontWeight:'800', fontSize:'1rem', color:'#1e293b', textTransform:'uppercase', letterSpacing:'1px', borderBottom:'1px solid #e2e8f0', paddingBottom:'10px'}}>Select Payment Method:</label>
+          </div>
+
           <div className="payment-options">
             {['Cash', 'Card', 'Bank Transfer'].map((method) => (
               <button 
@@ -619,10 +628,10 @@ export default function PatientRegistration({ onStepChange }) {
             ))}
           </div>
 
-          <div style={{ display:'flex', gap:'1rem', marginTop: '2rem' }}>
-            <button className="cancel-btn" style={{flex:1, padding:'0.7rem 1.2rem', fontSize:'0.9rem'}} onClick={() => setStep(2)}>Back</button>
-            <button className="action-btn submit-btn" style={{flex:2, margin:0, padding:'0.7rem 1.2rem', fontSize:'0.95rem', borderRadius:'10px'}} onClick={confirmVisit}>
-              Confirm & Generate Receipt
+          <div style={{ display:'flex', gap:'1rem', marginTop: '2.5rem' }}>
+            <button className="cancel-btn" style={{flex:1}} onClick={() => setStep(2)}>Back</button>
+            <button className="action-btn submit-btn" onClick={confirmVisit}>
+              Confirm &amp; Generate Receipt
             </button>
           </div>
         </div>

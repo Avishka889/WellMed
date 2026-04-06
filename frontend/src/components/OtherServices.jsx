@@ -647,15 +647,15 @@ export default function OtherServices() {
 
                <div style={{
                  display:'flex', justifyContent:'space-between', alignItems:'center',
-                 background:'white', color:'#0f172a', padding:'1.2rem 1.5rem', borderRadius:'10px',
-                 border:'2px solid #0f172a'
+                 background:'#f8fafc', color:'#0f172a', padding:'0.8rem 1.2rem', borderRadius:'10px',
+                 border:'1.5px solid #e2e8f0'
                }}>
-                 <span style={{fontWeight:'700', fontSize:'1rem'}}>TOTAL SERVICE FEE</span>
-                 <span style={{fontWeight:'800', fontSize:'1.6rem'}}>Rs. {calculateTotal().toFixed(2)}</span>
+                 <span style={{fontWeight:'700', fontSize:'0.85rem', color:'#64748b', textTransform:'uppercase', letterSpacing:'0.8px'}}>Total Clinical Fee</span>
+                 <span style={{fontWeight:'800', fontSize:'1.4rem'}}>Rs. {calculateTotal().toFixed(2)}</span>
                </div>
 
-               <div style={{marginTop:'10px'}}>
-                 <label style={{display:'block', marginBottom:'8px', fontWeight:'700', fontSize:'0.9rem', color:'#475569'}}>Select Payment Method:</label>
+               <div style={{marginTop:'3.5rem'}}>
+                 <label style={{display:'block', marginBottom:'15px', fontWeight:'800', fontSize:'1rem', color:'#1e293b', textTransform:'uppercase', letterSpacing:'1px', borderBottom:'1px solid #e2e8f0', paddingBottom:'10px'}}>Select Payment Method:</label>
                  <div className="payment-options">
                    {['Cash', 'Card', 'Bank Transfer'].map((method) => (
                      <button 
@@ -674,7 +674,6 @@ export default function OtherServices() {
                    className="action-btn submit-btn"
                    onClick={handleProcessPayment}
                    disabled={!!staffError}
-                   style={{padding:'8px 24px', fontSize:'0.9rem', fontWeight:'700', borderRadius:'10px', width:'auto', minWidth:'200px'}}
                  >
                    Confirm &amp; Print Bill
                  </button>
@@ -686,4 +685,3 @@ export default function OtherServices() {
     </div>
   );
 }
-

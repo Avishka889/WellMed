@@ -18,7 +18,7 @@ function Login() {
   const handleForgotPassword = async (e) => {
     e.preventDefault();
     if (!username.trim()) {
-      toast.error("Please enter your username first (owner or admin) to receive the reset link.");
+      toast.error("Please enter your username first to receive the reset link.");
       return;
     }
 
@@ -99,7 +99,7 @@ function Login() {
         <form onSubmit={handleLogin}>
           <div className="input-group">
             <label>Username</label>
-            <input type="text" placeholder="owner or admin" value={username} onChange={(e) => setUsername(e.target.value)} required disabled={isLoading} />
+            <input type="text" placeholder="Username" value={username} onChange={(e) => setUsername(e.target.value)} required disabled={isLoading} />
           </div>
           <div className="input-group">
             <label>Password</label>
@@ -109,7 +109,7 @@ function Login() {
             <a href="#" onClick={handleForgotPassword}>Forget Password?</a>
           </div>
           <button type="submit" className="login-btn" disabled={isLoading}>
-            {isLoading ? "Validating..." : "Login to WellMed Dashboard"}
+            {isLoading ? "Validating..." : "Login"}
           </button>
         </form>
       </div>

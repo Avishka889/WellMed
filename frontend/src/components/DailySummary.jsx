@@ -60,6 +60,7 @@ export default function DailySummary() {
         let counts = { opd: 0, chan: 0, proc: 0, newPat: 0, regPat: 0, total: 0 };
         let amounts = { opd: 0, chan: 0, proc: 0, total: 0 };
         let procBreakdown = { hosp: 0, doc: 0, nurse: 0 };
+        let procedureTypeCounts = {}; // NEW: { "ECG": 5, "Wound Dressing": 2 }
         
         let chanDoctorBreakdown = {}; // { docName: { doc: 0, hosp: 0 } }
         let opdDoctorBreakdown = {};  // { docName: { procCharge: 0 } }
@@ -113,7 +114,15 @@ export default function DailySummary() {
             (p.services || []).forEach(s => {
               const nurseE = Number(s.nurseCut || s.nurseEarnings || 0);
               const docE = Number(s.docCut || s.doctorEarnings || 0);
-              const tot = Number(s.baseAmount || s.amount || 0) + Number(s.docCut || s.doctorCharge || 0);
+              
+              // Count procedure type
+              const sName = s.name || 'Unspecified';
+              procedureTypeCounts[sName] = (procedureTypeCounts[sName] || 0) + 1;
+
+              // FIX: Use the same logic as PaymentManagement
+              const tot = s.type === 'Fixed' 
+                ? Number(s.price || s.base || s.baseAmount || 0) 
+                : (Number(s.base || s.baseAmount || 0) + docE);
               
               pHosp += (tot - nurseE - docE);
               pDoc += docE;
@@ -162,7 +171,7 @@ export default function DailySummary() {
         });
 
         setStats({
-          counts, amounts, procBreakdown, chanDoctorBreakdown, opdFinalBreakdown
+          counts, amounts, procBreakdown, chanDoctorBreakdown, opdFinalBreakdown, procedureTypeCounts
         });
       }
     } catch (err) {
@@ -277,31 +286,27 @@ export default function DailySummary() {
                         <div style={{fontSize:'1.5rem', fontWeight:'800', color:'#c2410c'}}>{stats.counts.proc}</div>
                       </div>
                    </div>
-                   <div style={{marginTop:'1.5rem', background:'#f1f5f9', padding:'10px 15px', borderRadius:'8px', display:'flex', gap:'2rem'}}>
-                      <div><span style={{fontWeight:'700', color:'#475569'}}>Already Registered:</span> <span style={{fontWeight:'800', color:'#0f172a'}}>{stats.counts.regPat}</span></div>
-                      <div><span style={{fontWeight:'700', color:'#475569'}}>New Registrations:</span> <span style={{fontWeight:'800', color:'#16a34a'}}>{stats.counts.newPat}</span></div>
-                   </div>
                 </div>
 
                 {/* Amount Breakdown */}
                 <div style={{background:'#fcfcfc', border:'1px solid #e2e8f0', borderRadius:'12px', padding:'1.5rem', marginBottom:'2rem'}}>
                    <h3 style={{color:'#1e293b', margin:'0 0 15px 0', borderBottom:'2px solid #e2e8f0', paddingBottom:'10px'}}>Overall Revenue</h3>
-                   <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(200px, 1fr))', gap:'1.5rem'}}>
-                      <div style={{background:'#f8fafc', padding:'1rem', borderRadius:'8px', border:'1px solid #cbd5e1'}}>
-                        <div style={{color:'#64748b', fontWeight:'700', fontSize:'0.85rem'}}>TOTAL REVENUE</div>
-                        <div style={{fontSize:'1.8rem', fontWeight:'900', color:'#0f172a'}}>Rs. {stats.amounts.total.toFixed(2)}</div>
+                   <div style={{display:'flex', gap:'0.8rem', flexWrap:'wrap'}}>
+                      <div style={{flex:1, minWidth:'175px', background:'#f8fafc', padding:'0.75rem 1rem', borderRadius:'8px', border:'1px solid #cbd5e1'}}>
+                        <div style={{color:'#64748b', fontWeight:'700', fontSize:'0.75rem'}}>TOTAL REVENUE</div>
+                        <div style={{fontSize:'1.35rem', fontWeight:'900', color:'#0f172a'}}>Rs. {stats.amounts.total.toFixed(2)}</div>
                       </div>
-                      <div style={{background:'#f0f9ff', padding:'1rem', borderRadius:'8px', border:'1px solid #bae6fd'}}>
-                        <div style={{color:'#0369a1', fontWeight:'700', fontSize:'0.85rem'}}>OPD AMOUNT</div>
-                        <div style={{fontSize:'1.5rem', fontWeight:'800', color:'#0284c7'}}>Rs. {stats.amounts.opd.toFixed(2)}</div>
+                      <div style={{flex:1, minWidth:'175px', background:'#f0f9ff', padding:'0.75rem 1rem', borderRadius:'8px', border:'1px solid #bae6fd'}}>
+                        <div style={{color:'#0369a1', fontWeight:'700', fontSize:'0.75rem'}}>OPD REVENUE</div>
+                        <div style={{fontSize:'1.35rem', fontWeight:'800', color:'#0284c7'}}>Rs. {stats.amounts.opd.toFixed(2)}</div>
                       </div>
-                      <div style={{background:'#f0fdf4', padding:'1rem', borderRadius:'8px', border:'1px solid #bbf7d0'}}>
-                        <div style={{color:'#166534', fontWeight:'700', fontSize:'0.85rem'}}>CHANNELING AMOUNT</div>
-                        <div style={{fontSize:'1.5rem', fontWeight:'800', color:'#16a34a'}}>Rs. {stats.amounts.chan.toFixed(2)}</div>
+                      <div style={{flex:1, minWidth:'175px', background:'#f0fdf4', padding:'0.75rem 1rem', borderRadius:'8px', border:'1px solid #bbf7d0'}}>
+                        <div style={{color:'#166534', fontWeight:'700', fontSize:'0.75rem'}}>CHAN. REVENUE</div>
+                        <div style={{fontSize:'1.35rem', fontWeight:'800', color:'#16a34a'}}>Rs. {stats.amounts.chan.toFixed(2)}</div>
                       </div>
-                      <div style={{background:'#fff7ed', padding:'1rem', borderRadius:'8px', border:'1px solid #fed7aa'}}>
-                        <div style={{color:'#9a3412', fontWeight:'700', fontSize:'0.85rem'}}>PROCEDURES AMOUNT</div>
-                        <div style={{fontSize:'1.5rem', fontWeight:'800', color:'#c2410c'}}>Rs. {stats.amounts.proc.toFixed(2)}</div>
+                      <div style={{flex:1, minWidth:'175px', background:'#fff7ed', padding:'0.75rem 1rem', borderRadius:'8px', border:'1px solid #fed7aa'}}>
+                        <div style={{color:'#9a3412', fontWeight:'700', fontSize:'0.75rem'}}>PROC. REVENUE</div>
+                        <div style={{fontSize:'1.35rem', fontWeight:'800', color:'#c2410c'}}>Rs. {stats.amounts.proc.toFixed(2)}</div>
                       </div>
                    </div>
                 </div>
@@ -320,9 +325,25 @@ export default function DailySummary() {
                             <span style={{fontWeight:'600', color:'#475569'}}>Doctor Share</span>
                             <span style={{fontWeight:'800'}}>Rs. {stats.procBreakdown.doc.toFixed(2)}</span>
                          </div>
-                         <div style={{display:'flex', justifyContent:'space-between', padding:'8px 0'}}>
+                         <div style={{display:'flex', justifyContent:'space-between', padding:'8px 0', borderBottom:'1.5px solid #f1f5f9'}}>
                             <span style={{fontWeight:'600', color:'#475569'}}>Nurse Share</span>
                             <span style={{fontWeight:'800'}}>Rs. {stats.procBreakdown.nurse.toFixed(2)}</span>
+                         </div>
+                         <div style={{display:'flex', justifyContent:'space-between', padding:'10px 0', borderBottom:'2px solid #e2e8f0', background:'#f8fafc', margin:'5px -1.5rem 0 -1.5rem', paddingLeft:'1.5rem', paddingRight:'1.5rem'}}>
+                            <span style={{fontWeight:'800', color:'#0f172a'}}>SUBTOTAL PROCEDURES</span>
+                            <span style={{fontWeight:'900', color:'#c2410c'}}>Rs. {(stats.procBreakdown.hosp + stats.procBreakdown.doc + stats.procBreakdown.nurse).toFixed(2)}</span>
+                         </div>
+                         
+                         {/* Individual Procedure Counts */}
+                         <div style={{marginTop:'12px'}}>
+                            <p style={{fontSize:'0.75rem', fontWeight:'700', color:'#64748b', margin:'0 0 5px 0', textTransform:'uppercase'}}>Procedure Volume</p>
+                            <div style={{display:'flex', flexWrap:'wrap', gap:'8px'}}>
+                               {Object.entries(stats.procedureTypeCounts).map(([name, count]) => (
+                                  <div key={name} style={{background:'#f1f5f9', padding:'4px 10px', borderRadius:'6px', fontSize:'0.82rem', color:'#334155', fontWeight:'600'}}>
+                                     {name}: <span style={{color:'#0284c7'}}>{count}</span>
+                                  </div>
+                               ))}
+                            </div>
                          </div>
                       </div>
 
@@ -334,10 +355,13 @@ export default function DailySummary() {
                          ) : (
                            Object.entries(stats.chanDoctorBreakdown).map(([docName, vals], i) => (
                              <div key={i} style={{marginBottom:'1rem', paddingBottom:'1rem', borderBottom:'1px solid #f1f5f9'}}>
-                                <div style={{fontWeight:'800', color:'#0f172a', marginBottom:'5px'}}>{docName}</div>
-                                <div style={{display:'flex', justifyContent:'space-between', fontSize:'0.9rem', color:'#475569'}}>
-                                   <span>Doctor's Pay: <b>Rs. {vals.doc.toFixed(2)}</b></span>
-                                   <span>Hospital Share: <b>Rs. {vals.hosp.toFixed(2)}</b></span>
+                                <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'8px'}}>
+                                   <div style={{fontWeight:'800', color:'#0f172a'}}>{docName}</div>
+                                   <div style={{background:'#f0fdf4', padding:'2px 8px', borderRadius:'6px', fontSize:'0.85rem', color:'#166534', fontWeight:'700'}}>Total: Rs. {(vals.doc + vals.hosp).toFixed(2)}</div>
+                                </div>
+                                <div style={{display:'flex', justifyContent:'space-between', fontSize:'0.85rem', color:'#64748b'}}>
+                                   <span>Doctor: <b>Rs. {vals.doc.toFixed(2)}</b></span>
+                                   <span>Hospital: <b>Rs. {vals.hosp.toFixed(2)}</b></span>
                                 </div>
                              </div>
                            ))
@@ -379,19 +403,11 @@ export default function DailySummary() {
                   <tbody>
                     <tr>
                       <td>Total Patients Handled:</td><td><b>{stats.counts.total}</b></td>
-                      <td>New Registrations:</td><td><b>{stats.counts.newPat}</b></td>
-                    </tr>
-                    <tr>
                       <td>OPD Patients:</td><td><b>{stats.counts.opd}</b></td>
-                      <td>Already Registered:</td><td><b>{stats.counts.regPat}</b></td>
                     </tr>
                     <tr>
                       <td>Channeling Patients:</td><td><b>{stats.counts.chan}</b></td>
-                      <td></td><td></td>
-                    </tr>
-                    <tr>
                       <td>Procedure Billings:</td><td><b>{stats.counts.proc}</b></td>
-                      <td></td><td></td>
                     </tr>
                   </tbody>
                 </table>

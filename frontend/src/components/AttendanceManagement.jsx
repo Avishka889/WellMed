@@ -449,60 +449,69 @@ export default function AttendanceManagement() {
         </div>
 
         {logView !== 'today' && (
-          <div className="fade-in no-print" style={{background:'#f8fafc', padding:'1.5rem', borderRadius:'16px', marginBottom:'2rem', border:'1px solid #e2e8f0', display:'flex', gap:'1rem', alignItems:'flex-end', flexWrap:'wrap'}}>
-             {logView === 'daily' && (
-                <div style={{display:'flex', flexDirection:'column', gap:'5px', flex:1, minWidth:'150px'}}>
-                  <label style={{fontWeight:'700', color:'#475569'}}>Select Date</label>
-                  <input type="date" value={reportDate} max={today} onChange={e=>setReportDate(e.target.value)} style={{padding:'12px', borderRadius:'12px', border:'2px solid #e2e8f0', background:'white', outline:'none', fontFamily:'inherit', boxShadow:'0 2px 5px rgba(0,0,0,0.02)'}} />
-                </div>
-             )}
-
-             {(logView === 'category' || logView === 'individual') && (
-                <>
+          <>
+            <div className="fade-in no-print" style={{background:'#f8fafc', padding:'1.5rem', borderRadius:'16px', marginBottom:'1.5rem', border:'1px solid #e2e8f0', display:'flex', gap:'1.5rem', alignItems:'center', flexWrap:'wrap'}}>
+               {logView === 'daily' && (
                   <div style={{display:'flex', flexDirection:'column', gap:'5px', flex:1, minWidth:'150px'}}>
-                    <label style={{fontWeight:'700', color:'#475569'}}>Start Date</label>
-                    <input type="date" value={startDate} max={today} onChange={e=>setStartDate(e.target.value)} style={{padding:'12px', borderRadius:'12px', border:'2px solid #e2e8f0', background:'white', outline:'none', fontFamily:'inherit', boxShadow:'0 2px 5px rgba(0,0,0,0.02)'}} />
+                    <label style={{fontWeight:'700', color:'#475569'}}>Select Date</label>
+                    <input type="date" value={reportDate} max={today} onChange={e=>setReportDate(e.target.value)} style={{padding:'12px', borderRadius:'12px', border:'2px solid #e2e8f0', background:'white', outline:'none', fontFamily:'inherit', boxShadow:'0 2px 5px rgba(0,0,0,0.02)'}} />
                   </div>
-                  <div style={{display:'flex', flexDirection:'column', gap:'5px', flex:1, minWidth:'150px'}}>
-                    <label style={{fontWeight:'700', color:'#475569'}}>End Date</label>
-                    <input type="date" value={endDate} max={today} onChange={e=>setEndDate(e.target.value)} style={{padding:'12px', borderRadius:'12px', border:'2px solid #e2e8f0', background:'white', outline:'none', fontFamily:'inherit', boxShadow:'0 2px 5px rgba(0,0,0,0.02)'}} />
+               )}
+
+               {(logView === 'category' || logView === 'individual') && (
+                  <>
+                    <div style={{display:'flex', flexDirection:'column', gap:'5px', flex:1, minWidth:'150px'}}>
+                      <label style={{fontWeight:'700', color:'#475569'}}>Start Date</label>
+                      <input type="date" value={startDate} max={today} onChange={e=>setStartDate(e.target.value)} style={{padding:'12px', borderRadius:'12px', border:'2px solid #e2e8f0', background:'white', outline:'none', fontFamily:'inherit', boxShadow:'0 2px 5px rgba(0,0,0,0.02)'}} />
+                    </div>
+                    <div style={{display:'flex', flexDirection:'column', gap:'5px', flex:1, minWidth:'150px'}}>
+                      <label style={{fontWeight:'700', color:'#475569'}}>End Date</label>
+                      <input type="date" value={endDate} max={today} onChange={e=>setEndDate(e.target.value)} style={{padding:'12px', borderRadius:'12px', border:'2px solid #e2e8f0', background:'white', outline:'none', fontFamily:'inherit', boxShadow:'0 2px 5px rgba(0,0,0,0.02)'}} />
+                    </div>
+                  </>
+               )}
+
+               {logView === 'category' && (
+                  <div style={{display:'flex', flexDirection:'column', gap:'5px', flex:1, minWidth:'200px'}}>
+                    <label style={{fontWeight:'700', color:'#475569'}}>Category Filter</label>
+                    <select value={reportCategory} onChange={e=>setReportCategory(e.target.value)} style={{padding:'12px', borderRadius:'12px', border:'2px solid #e2e8f0', outline:'none', fontFamily:'inherit', background:'white'}}>
+                       <option value="OPD">OPD Doctors</option>
+                       <option value="Channeling">Channeling Doctors</option>
+                       <option value="staff">Nurses & Staff</option>
+                    </select>
                   </div>
-                </>
-             )}
+               )}
 
-             {logView === 'category' && (
-                <div style={{display:'flex', flexDirection:'column', gap:'5px', flex:1, minWidth:'200px'}}>
-                  <label style={{fontWeight:'700', color:'#475569'}}>Category Filter</label>
-                  <select value={reportCategory} onChange={e=>setReportCategory(e.target.value)} style={{padding:'10px', borderRadius:'10px', border:'1.5px solid #cbd5e1', outline:'none', fontFamily:'inherit'}}>
-                     <option value="OPD">OPD Doctors</option>
-                     <option value="Channeling">Channeling Doctors</option>
-                     <option value="staff">Nurses & Staff</option>
-                  </select>
-                </div>
-             )}
+               {logView === 'individual' && (
+                  <div style={{display:'flex', flexDirection:'column', gap:'5px', flex:1, minWidth:'200px'}}>
+                    <label style={{fontWeight:'700', color:'#475569'}}>Select Member</label>
+                    <select value={reportMemberId} onChange={e=>setReportMemberId(e.target.value)} style={{padding:'12px', borderRadius:'12px', border:'2px solid #e2e8f0', outline:'none', fontFamily:'inherit', background:'white'}}>
+                       <option value="">-- Choose Member --</option>
+                       <optgroup label="OPD Doctors">
+                          {doctors.filter(d=>d.docType==='OPD').map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                       </optgroup>
+                       <optgroup label="Channeling Doctors">
+                          {doctors.filter(d=>d.docType==='Channeling').map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                       </optgroup>
+                       <optgroup label="Nurses & Staff">
+                          {staff.map(d => <option key={d.id} value={d.id}>{d.name} ({d.role})</option>)}
+                       </optgroup>
+                    </select>
+                  </div>
+               )}
+            </div>
 
-             {logView === 'individual' && (
-                <div style={{display:'flex', flexDirection:'column', gap:'5px', flex:1, minWidth:'200px'}}>
-                  <label style={{fontWeight:'700', color:'#475569'}}>Select Member</label>
-                  <select value={reportMemberId} onChange={e=>setReportMemberId(e.target.value)} style={{padding:'10px', borderRadius:'10px', border:'1.5px solid #cbd5e1', outline:'none', fontFamily:'inherit'}}>
-                     <option value="">-- Choose Member --</option>
-                     <optgroup label="OPD Doctors">
-                        {doctors.filter(d=>d.docType==='OPD').map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-                     </optgroup>
-                     <optgroup label="Channeling Doctors">
-                        {doctors.filter(d=>d.docType==='Channeling').map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-                     </optgroup>
-                     <optgroup label="Nurses & Staff">
-                        {staff.map(d => <option key={d.id} value={d.id}>{d.name} ({d.role})</option>)}
-                     </optgroup>
-                  </select>
-                </div>
-             )}
-
-             <button onClick={generateReport} disabled={isGenerating} style={{background:'#00B4D8', color:'white', border:'none', padding:'10px 30px', borderRadius:'10px', fontWeight:'700', cursor:'pointer', height:'48px', minWidth:'150px', transition:'0.3s', boxShadow:'0 4px 12px rgba(0,180,216,0.2)'}}>
-                 {isGenerating ? 'Loading...' : 'Generate Report'}
-             </button>
-          </div>
+            <div className="no-print" style={{display:'flex', justifyContent:'center', marginBottom:'2.5rem'}}>
+               <button onClick={generateReport} disabled={isGenerating} style={{
+                  background:'#00B4D8', color:'white', border:'none', 
+                  padding:'12px 60px', borderRadius:'14px', fontWeight:'800', 
+                  cursor:'pointer', fontSize:'1.1rem', transition:'0.3s', 
+                  boxShadow:'0 8px 20px rgba(0,180,216,0.25)'
+               }}>
+                   {isGenerating ? 'Loading Records...' : 'Generate Report'}
+               </button>
+            </div>
+          </>
         )}
 
         {logView === 'today' ? (

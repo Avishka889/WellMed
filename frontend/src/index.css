@@ -52,21 +52,21 @@ body {
 .input-group input:focus { outline: none; border-color: var(--primary-cyan); background: white; box-shadow: 0 0 0 4px rgba(0, 180, 216, 0.1); }
 
 .forgot-password { text-align: right; margin-bottom: 1.8rem; }
-.forgot-password a { color: var(--primary-cyan); text-decoration: none; font-size: 0.95rem; font-weight: 600; transition: color 0.3s; }
-.forgot-password a:hover { color: var(--primary-cyan-hover); text-decoration: underline; }
+.forgot-password a { color: #000000; text-decoration: none; font-size: 0.95rem; font-weight: 600; transition: color 0.3s; }
+.forgot-password a:hover { color: #475569; text-decoration: underline; }
 
 .login-btn { width: 100%; padding: 1.1rem; background: linear-gradient(135deg, var(--primary-cyan), var(--primary-cyan-hover)); color: white; border: none; border-radius: 12px; font-size: 1.2rem; font-weight: 700; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 10px 20px rgba(0, 180, 216, 0.25); font-family: 'Poppins', sans-serif; }
 .login-btn:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(0, 180, 216, 0.4); }
 
 .dashboard-layout { display: flex; height: 100vh; background: var(--bg-color); background-image: none; }
-.sidebar { width: 330px; background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); padding: 2.5rem 2rem; display: flex; flex-direction: column; border-right: 1px solid #e2e8f0; box-shadow: 4px 0 25px rgba(0,0,0,0.03); z-index: 10; }
+.sidebar { width: 330px; background: #f1f5f9; padding: 2.5rem 2rem; display: flex; flex-direction: column; border-right: 1px solid #e2e8f0; box-shadow: 4px 0 25px rgba(0,0,0,0.02); z-index: 10; }
 .sidebar-brand { text-align: center; margin-bottom: 2.5rem; display: flex; flex-direction: column; align-items: center; }
 .sidebar-logo { width: 160px; mix-blend-mode: multiply; margin-bottom: 0.2rem; }
 .sidebar-brand h2 { color: var(--primary-cyan); font-weight: 800; font-size: 1.4rem; margin: 0; text-transform: uppercase; letter-spacing: 1.5px; }
 
 .sidebar-menu { display: flex; flex-direction: column; gap: 0.8rem; flex: 1; margin-top: 1rem; }
 .menu-item { background: transparent; border: none; text-align: left; padding: 1.1rem 1.4rem; font-size: 1.05rem; font-weight: 600; color: #475569; border-radius: 14px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; }
-.menu-item:hover { background: #e2e8f0; color: #0f172a; transform: translateX(5px); }
+.menu-item:hover { background: #cbd5e1; color: #0f172a; transform: translateX(5px); }
 .menu-item.active { background: linear-gradient(135deg, var(--primary-cyan), var(--primary-cyan-hover)); color: white; box-shadow: 0 10px 20px rgba(0, 180, 216, 0.25); }
 .menu-icon { font-size: 1.3rem; margin-right: 1rem; opacity: 0.9; }
 .menu-item.disabled { opacity: 0.4; cursor: not-allowed; }
@@ -75,7 +75,7 @@ body {
 .logout-btn:hover { background: #dc2626; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(220, 38, 38, 0.25); color: white; }
 
 .main-content { flex: 1; padding: 0; overflow-y: auto; position: relative; }
-.dashboard-bg { background: linear-gradient(rgba(255, 255, 255, 0.94), rgba(255, 255, 255, 0.94)), url('/bg.png'); background-size: cover; background-position: center 25%; background-attachment: fixed; background-color: #f8fafc; }
+.dashboard-bg { background: #ffffff; }
 
 .brand-header-horizontal { display: flex; align-items: center; justify-content: center; gap: 2rem; padding: 4rem 2rem 3rem 2rem; animation: fadeInDown 0.8s ease-out; }
 @keyframes fadeInDown { 0% { opacity: 0; transform: translateY(-20px); } 100% { opacity: 1; transform: translateY(0); } }
@@ -87,7 +87,7 @@ body {
 .hospital-tagline { margin: 0; color: #94a3b8; font-size: 1.1rem; font-weight: 500; letter-spacing: 0.5px; font-style: normal; }
 
 .tab-content { padding: 0 4rem 4rem 4rem; position: relative; z-index: 5; }
-body:has(.dashboard-layout) { background-image: none; background-color: #f8fafc; }
+body:has(.dashboard-layout) { background-image: none; background-color: #ffffff; }
 
 /* Dashboard Patient Steps Additions */
 .step-indicator { display: flex; justify-content: center; align-items: center; margin-bottom: 2rem; gap: 10px; font-weight: 600; color: #cbd5e1; }
@@ -112,8 +112,19 @@ body:has(.dashboard-layout) { background-image: none; background-color: #f8fafc;
 .form-group input, .custom-select { padding: 1rem; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 1rem; outline: none; background: #f8fafc; font-family: 'Poppins'; }
 .form-group input:focus, .custom-select:focus { border-color: var(--primary-cyan); background: white; }
 
-.submit-btn { background: var(--primary-cyan); width: 100%; margin-top: 1rem; }
-.submit-btn:hover { background: var(--primary-cyan-hover); }
+.submit-btn { 
+  background: var(--primary-cyan); 
+  width: auto;
+  min-width: 280px;
+  margin: 1.5rem auto 0 auto;
+  display: block;
+  padding: 1rem 2.2rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 180, 216, 0.15);
+}
+.submit-btn:hover { background: var(--primary-cyan-hover); transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0, 180, 216, 0.3); }
 
 .cancel-btn { background: white; border: 2px solid #e2e8f0; color: #64748b; padding: 0.8rem 1.5rem; border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.3s; }
 .cancel-btn:hover { background: #f1f5f9; border-color: #cbd5e1; }
@@ -160,8 +171,19 @@ body:has(.dashboard-layout) { background-image: none; background-color: #f8fafc;
 .bill-summary h1 { color: #166534; font-size: 2.2rem; margin: 0; }
 .bill-summary h3 { margin: 0 0 5px 0; color: #15803d; font-size: 1.2rem; }
 .payment-options { display: flex; gap: 0.8rem; justify-content: center; margin-bottom: 1.5rem; }
-.pay-btn { flex: 1; padding: 1rem 0.5rem; border: 2px solid #e2e8f0; background: white; border-radius: 10px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: 0.2s; }
-.pay-btn.active { background: var(--primary-orange); color: white; border-color: var(--primary-orange); }
+.pay-btn { 
+  flex: 1; 
+  padding: 0.7rem 0.5rem; 
+  border: 2px solid #e2e8f0; 
+  background: white; 
+  border-radius: 10px; 
+  font-size: 0.9rem; 
+  font-weight: 600; 
+  cursor: pointer; 
+  transition: 0.2s; 
+  color: #64748b;
+}
+.pay-btn.active { background: var(--primary-orange); color: white; border-color: var(--primary-orange); box-shadow: 0 4px 12px rgba(244, 162, 97, 0.3); }
 
 /* RECEIPT CSS */
 .receipt-actions { display: flex; justify-content: flex-end; gap: 1rem; margin-bottom: 2rem; }

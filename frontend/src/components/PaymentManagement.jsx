@@ -25,11 +25,11 @@ const PRINT_STYLES = `
     .registration-panel { border: none !important; padding: 0 !important; margin: 0 !important; width: 100% !important; max-width: 100% !important; box-shadow: none !important; background: white !important; }
     .report-print-container { padding: 0; background: white !important; }
     table { width: 100% !important; border-collapse: collapse !important; margin-bottom: 20px; }
-    th, td { border: none !important; border-bottom: 1px dashed #ccc !important; padding: 8px 4px !important; font-size: 10.5pt !important; color: #000 !important; text-align: left; }
+    th, td { border: none !important; border-bottom: 1px dashed #ccc !important; padding: 6px 4px !important; font-size: 9.5pt !important; color: #000 !important; text-align: left; }
     th { border-bottom: 1px solid #aaa !important; font-weight: bold; background: transparent !important; }
-    .print-header { text-align: center; margin-bottom: 30px; }
-    .print-hospital-name { font-size: 24pt; font-weight: bold; color: #000; margin-bottom: 5px; }
-    h3, h4 { color: #000 !important; border-bottom: 1px solid #ddd; padding-bottom: 5px; margin-top: 20px; margin-bottom: 15px; page-break-after: avoid; font-size: 13pt; font-weight: bold; text-decoration: none !important; }
+    .print-header { text-align: center; margin-bottom: 25px; }
+    .print-hospital-name { font-size: 22pt; font-weight: bold; color: #000; margin-bottom: 5px; }
+    h3, h4 { color: #000 !important; border-bottom: 1px solid #ddd; padding-bottom: 4px; margin-top: 15px; margin-bottom: 10px; page-break-after: avoid; font-size: 12pt; font-weight: bold; text-decoration: none !important; }
   }
   .print-only { display: none; }
 `;
@@ -151,7 +151,11 @@ export default function PaymentManagement({ bypassPassword = false }) {
         (p.services || []).forEach(s => {
           const nE = Number(s.nurseCut || s.nurseEarnings || 0);
           const dE = Number(s.docCut || s.doctorEarnings || 0);
-          const total = Number(s.baseAmount || s.amount || 0) + Number(s.docCut || s.doctorCharge || 0);
+          // FIX: For Fixed price, the price/base is already the total. For Variable, it is Base + Doc cut.
+          const total = s.type === 'Fixed' 
+            ? Number(s.price || s.base || 0) 
+            : (Number(s.base || s.baseAmount || 0) + dE);
+          
           nSum += nE; dSum += dE; hSum += (total - nE - dE);
         });
       });
@@ -252,25 +256,207 @@ export default function PaymentManagement({ bypassPassword = false }) {
               </div>
             </div>
           )}
-          <div style={{marginTop:'20px'}}>
+          <div style={{marginTop:'25px'}}>
              {isAudit ? (
-                <p style={{textAlign:'center', color:'#64748b'}}>Use Print button below for detail audit view.</p>
+                <div className="fade-in">
+                  <h4 style={{fontSize: '1.4rem', borderBottom: '2px solid #00B4D8', paddingBottom: '8px'}}>Staff Audit Report: {selectedDoctorName || selectedNurseName}</h4>
+                  <table style={{width:'100%', borderCollapse:'collapse', marginBottom: '30px', fontSize: '0.9rem'}}>
+                    <thead>
+                      <tr style={{background: '#f8fafc', borderBottom: '2px solid #cbd5e1'}}>
+                        <th style={{padding: '10px', textAlign: 'left'}}>Date</th>
+                        <th style={{padding: '10px', textAlign: 'left'}}>Patient Name</th>
+                        <th style={{padding: '10px', textAlign: 'left'}}>Type</th>
+                        <th style={{padding: '10px', textAlign: 'right'}}>Total Charge</th>
+                        <th style={{padding: '10px', textAlign: 'right', color: '#0369a1'}}>Hospital</th>
+                        <th style={{padding: '10px', textAlign: 'right', color: '#7c3aed'}}>Your Earnings</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(() => {
+                        let staffEarnings = 0;
+                        let hospitalTotal = 0;
+                        let count = 0;
+                        const filteredProcs = [];
+                        
+                        procRecords.forEach(p => {
+                          const safeDate = p.date || (p.timestamp?.toDate ? p.timestamp.toDate().toLocaleDateString('en-CA') : (p.timestamp ? new Date(p.timestamp).toLocaleDateString('en-CA') : '-'));
+                          const isProcMatch = (selectedDoctorName && p.activeDoctorName === selectedDoctorName) || 
+                                             (selectedNurseName && p.activeNurseName === selectedNurseName);
+                          
+                          if (isProcMatch) {
+                            (p.services || []).forEach(s => {
+                              const nE = Number(s.nurseCut || 0);
+                              const dE = Number(s.docCut || 0);
+                              const myE = selectedDoctorName ? dE : nE;
+                              const total = s.type === 'Fixed' ? Number(s.price || s.base || 0) : (Number(s.base || s.baseAmount || 0) + dE);
+                              const hNet = total - nE - dE;
+                              
+                              staffEarnings += myE;
+                              hospitalTotal += hNet;
+                              filteredProcs.push({ date: safeDate, name: p.patientName, service: s.name, total, hospital: hNet, earnings: myE });
+                              count++;
+                            });
+                          }
+                        });
+
+                        const filteredVisits = visitRecords.filter(v => 
+                          (selectedDoctorName && v.doctor === selectedDoctorName)
+                        );
+                        
+                        filteredVisits.forEach(v => {
+                           const e = Number(v.doctorCharge || 0);
+                           staffEarnings += e;
+                           hospitalTotal += Number(v.hospitalCharge || 0);
+                           count++;
+                        });
+
+                        if (count === 0) return <tr><td colSpan="6" style={{padding: '20px', textAlign: 'center', color: '#94a3b8'}}>No direct earnings found for this staff member in this period.</td></tr>;
+
+                        return (
+                          <>
+                            {filteredVisits.map(v => (
+                              <tr key={v.id} style={{borderBottom: '1px solid #e2e8f0'}}>
+                                <td style={{padding: '10px'}}>{v.date}</td>
+                                <td style={{padding: '10px'}}>{v.patientName}</td>
+                                <td style={{padding: '10px'}}>{v.serviceType || v.type}</td>
+                                <td style={{padding: '10px', textAlign: 'right'}}>{fmt(v.amount)}</td>
+                                <td style={{padding: '10px', textAlign: 'right', color: '#0369a1'}}>{fmt(v.hospitalCharge)}</td>
+                                <td style={{padding: '10px', textAlign: 'right', color: '#7c3aed', fontWeight:'600'}}>{fmt(v.doctorCharge)}</td>
+                              </tr>
+                            ))}
+                            {filteredProcs.map((p, ix) => (
+                              <tr key={`p-${ix}`} style={{borderBottom: '1px solid #e2e8f0'}}>
+                                <td style={{padding: '10px'}}>{p.date}</td>
+                                <td style={{padding: '10px'}}>{p.name}</td>
+                                <td style={{padding: '10px'}}>{p.service} (P)</td>
+                                <td style={{padding: '10px', textAlign: 'right'}}>{fmt(p.total)}</td>
+                                <td style={{padding: '10px', textAlign: 'right', color: '#0369a1'}}>{fmt(p.hospital)}</td>
+                                <td style={{padding: '10px', textAlign: 'right', color: '#7c3aed', fontWeight:'600'}}>{fmt(p.earnings)}</td>
+                              </tr>
+                            ))}
+                            <tr style={{background: '#f1f5f9', fontWeight: '800'}}>
+                              <td colSpan="4" style={{padding: '12px'}}>STAFF PERFORMANCE TOTALS</td>
+                              <td style={{padding: '12px', textAlign: 'right', color: '#0369a1'}}>{fmt(hospitalTotal)}</td>
+                              <td style={{padding: '12px', textAlign: 'right', color: '#7c3aed', fontSize:'1.1rem'}}>{fmt(staffEarnings)}</td>
+                            </tr>
+                          </>
+                        );
+                      })()}
+                    </tbody>
+                  </table>
+                </div>
              ) : (
                 <>
-                  <h4>Hospital Revenue Summary</h4>
-                  <table style={{width:'100%', borderCollapse:'collapse'}}>
+                  <h4>Clinic Revenue Summary</h4>
+                  <table style={{width:'100%', borderCollapse:'collapse', marginBottom: '30px'}}>
+                    <thead>
+                      <tr style={{borderBottom: '2px solid #e2e8f0'}}>
+                        <th style={{padding: '12px', textAlign: 'left'}}>Category</th>
+                        <th style={{padding: '12px', textAlign: 'center'}}>Patient Count</th>
+                        <th style={{padding: '12px', textAlign: 'right'}}>Total Revenue</th>
+                      </tr>
+                    </thead>
                     <tbody>
-                      <tr><td>OPD Consultations</td><td style={{textAlign:'right'}}>{fmt(opdTotal)}</td></tr>
-                      <tr><td>Specialist Channeling</td><td style={{textAlign:'right'}}>{fmt(channelingTotal)}</td></tr>
-                      <tr><td>Clinical Procedures (Total)</td><td style={{textAlign:'right'}}>{fmt(procHospitalTotal + procDoctorTotal + procNurseTotal)}</td></tr>
-                      <tr style={{fontWeight:'bold', fontSize:'12pt', background:'#f1f5f9'}}><td>GRAND TOTAL REVENUE</td><td style={{textAlign:'right'}}>{fmt(opdTotal + channelingTotal + procHospitalTotal + procDoctorTotal + procNurseTotal)}</td></tr>
+                      <tr style={{borderBottom: '1px solid #f1f5f9'}}>
+                        <td style={{padding: '12px', fontWeight: '600'}}>OPD Consultations</td>
+                        <td style={{padding: '12px', textAlign: 'center'}}>
+                          {(() => {
+                              const list = visitRecords.filter(v => v.serviceType === 'OPD' || v.type === 'OPD');
+                              const morn = list.filter(v => {
+                                const dt = v.timestamp?.toDate ? v.timestamp.toDate() : new Date(v.timestamp);
+                                return dt.getHours() < 13;
+                              }).length;
+                              const eve = list.length - morn;
+                              return (
+                                <span>
+                                  <strong>{list.length}</strong> <br/>
+                                  <small style={{color:'#64748b'}}>Morn: {morn} | Eve: {eve}</small>
+                                </span>
+                              );
+                          })()}
+                        </td>
+                        <td style={{padding: '12px', textAlign: 'right'}}>{fmt(opdTotal)}</td>
+                      </tr>
+                      <tr style={{borderBottom: '1px solid #f1f5f9'}}>
+                        <td style={{padding: '12px', fontWeight: '600'}}>Specialist Channeling</td>
+                        <td style={{padding: '12px', textAlign: 'center'}}><strong>{visitRecords.filter(v=> v.serviceType=== 'Channeling' || v.type === 'Channeling' || v.appointmentNo?.startsWith('CH')).length}</strong></td>
+                        <td style={{padding: '12px', textAlign: 'right'}}>{fmt(channelingTotal)}</td>
+                      </tr>
+                      <tr style={{borderBottom: '1px solid #f1f5f9'}}>
+                        <td style={{padding: '12px', fontWeight: '600'}}>Clinical Procedures</td>
+                        <td style={{padding: '12px', textAlign: 'center'}}><strong>{procRecords.length}</strong></td>
+                        <td style={{padding: '12px', textAlign: 'right'}}>{fmt(procHospitalTotal + procDoctorTotal + procNurseTotal)}</td>
+                      </tr>
+                      <tr style={{background: '#f1f5f9', borderTop: '2px solid #0f172a', borderBottom: '2px solid #0f172a', fontSize: '13pt'}}>
+                        <td style={{padding: '15px', fontWeight: '800', color: '#000'}}>GRAND TOTAL REVENUE</td>
+                        <td style={{padding: '15px', textAlign: 'center', fontWeight: '800', color: '#000'}}>
+                           Patients: {(() => {
+                              const uniqueIds = new Set();
+                              visitRecords.forEach(v => v.patientId && uniqueIds.add(v.patientId));
+                              procRecords.forEach(p => p.patientId && uniqueIds.add(p.patientId));
+                              return uniqueIds.size > 0 ? uniqueIds.size : (visitRecords.length + procRecords.length);
+                           })()}
+                        </td>
+                        <td style={{padding: '15px', textAlign: 'right', fontWeight: '800', color: '#000'}}>{fmt(opdTotal + channelingTotal + procHospitalTotal + procDoctorTotal + procNurseTotal)}</td>
+                      </tr>
                     </tbody>
+                  </table>
+
+                  <h4 style={{marginTop: '40px', borderBottom: '2px solid #00B4D8'}}>Clinical Procedures: Individual Breakdown</h4>
+                  <table style={{width:'100%', borderCollapse:'collapse', fontSize: '0.9rem'}}>
+                    <thead>
+                      <tr style={{background: '#f8fafc', borderBottom: '2px solid #cbd5e1'}}>
+                        <th style={{padding: '10px', textAlign: 'left'}}>Patient / Date</th>
+                        <th style={{padding: '10px', textAlign: 'left'}}>Procedure</th>
+                        <th style={{padding: '10px', textAlign: 'right'}}>Total Charge</th>
+                        <th style={{padding: '10px', textAlign: 'right', color: '#0369a1'}}>Hospital Net</th>
+                        <th style={{padding: '10px', textAlign: 'right', color: '#7c3aed'}}>Doctor Fee</th>
+                        <th style={{padding: '10px', textAlign: 'right', color: '#16a34a'}}>Nurse Fee</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {procRecords.length === 0 ? (
+                        <tr><td colSpan="6" style={{padding: '20px', textAlign: 'center', color: '#94a3b8'}}>No procedure records found for this period.</td></tr>
+                      ) : procRecords.map((p, idx) => (
+                        (p.services || []).map((s, sIdx) => {
+                          const nE = Number(s.nurseCut || s.nurseEarnings || 0);
+                          const dE = Number(s.docCut || s.doctorEarnings || 0);
+                          const total = s.type === 'Fixed' ? Number(s.price || s.base || 0) : (Number(s.base || s.baseAmount || 0) + dE);
+                          const hNet = total - nE - dE;
+                          
+                          return (
+                            <tr key={`${idx}-${sIdx}`} style={{borderBottom: '1px solid #e2e8f0'}}>
+                              <td style={{padding: '10px'}}>{p.patientName}<br/><small style={{color: '#64748b'}}>{p.date}</small></td>
+                              <td style={{padding: '10px', fontWeight: '600'}}>{s.name} <small style={{fontWeight:'normal', color:'#94a3b8'}}>({s.type})</small></td>
+                              <td style={{padding: '10px', textAlign: 'right', fontWeight: '700'}}>{fmt(total)}</td>
+                              <td style={{padding: '10px', textAlign: 'right', color: '#0369a1', fontWeight: '600'}}>{fmt(hNet)}</td>
+                              <td style={{padding: '10px', textAlign: 'right', color: '#7c3aed'}}>{fmt(dE)}</td>
+                              <td style={{padding: '10px', textAlign: 'right', color: '#16a34a'}}>{fmt(nE)}</td>
+                            </tr>
+                          );
+                        })
+                      ))}
+                    </tbody>
+                    {procRecords.length > 0 && (
+                      <tfoot>
+                        <tr style={{background: '#f1f5f9', fontWeight: '800'}}>
+                          <td colSpan="2" style={{padding: '12px'}}>TOTAL PROCEDURES SUMMARY</td>
+                          <td style={{padding: '12px', textAlign: 'right'}}>{fmt(procHospitalTotal + procDoctorTotal + procNurseTotal)}</td>
+                          <td style={{padding: '12px', textAlign: 'right', color: '#0369a1'}}>{fmt(procHospitalTotal)}</td>
+                          <td style={{padding: '12px', textAlign: 'right', color: '#7c3aed'}}>{fmt(procDoctorTotal)}</td>
+                          <td style={{padding: '12px', textAlign: 'right', color: '#16a34a'}}>{fmt(procNurseTotal)}</td>
+                        </tr>
+                      </tfoot>
+                    )}
                   </table>
                 </>
              )}
-          </div>
-          <div className="no-print" style={{ display: 'flex', justifyContent: 'center', marginTop: '30px' }}>
-            <button onClick={() => window.print()} style={{ background: '#0369a1', color: 'white', border: 'none', padding: '12px 30px', borderRadius: '8px', fontWeight: '800', cursor: 'pointer' }}>🖨️ Print Detailed Report</button>
+
+             <div className="no-print" style={{ display: 'flex', justifyContent: 'center', marginTop: '40px' }}>
+                <button onClick={() => window.print()} style={{ background: '#00B4D8', color: 'white', border: 'none', padding: '14px 45px', borderRadius: '12px', fontWeight: '800', cursor: 'pointer', boxShadow: '0 8px 18px rgba(0,180,216,0.25)', fontSize: '1rem', transition: '0.3s' }}>
+                  Print Detailed Financial Report
+                </button>
+             </div>
           </div>
         </div>
       )}
