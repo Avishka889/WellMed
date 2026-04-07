@@ -76,7 +76,7 @@ export default function DailySummary() {
             amounts.total += tFee;
 
             const isOPD = v.serviceType === 'OPD' || v.type === 'OPD';
-            const isChan = v.serviceType === 'Channelling' || (!isOPD && (v.serviceType === 'Channelling' || v.type === 'Channelling' || v.appointmentNo?.startsWith('CH')));
+            const isChan = v.serviceType === 'Channeling' || (!isOPD && (v.serviceType === 'Channeling' || v.type === 'Channeling' || v.appointmentNo?.startsWith('CH')));
 
             if (isOPD) {
               const docName = v.doctor || 'Unknown Doctor';
@@ -86,7 +86,7 @@ export default function DailySummary() {
               opdDoctorBreakdown[docName].opdConsultCharge += tFee;
               opdDoctorBreakdown[docName].opdCount++;
             } else if (isChan) {
-              // Channelling
+              // Channeling
               counts.chan++;
               amounts.chan += tFee;
               const docName = v.doctor || 'Unknown Doctor';
@@ -190,19 +190,16 @@ export default function DailySummary() {
     <div className="fade-in registration-panel">
       <style>{`
         @media print {
-          @page { margin: 12mm; size: A4 portrait; }
+          @page { margin: 15mm; size: A4 portrait; }
           .no-print { display: none !important; }
           .print-only { display: block !important; }
-          .print-logo { width: 80px; height: auto; margin-bottom: 10px; }
-          body { background: white !important; font-family: 'Segoe UI', Roboto, sans-serif; color: black !important; }
+          .print-header { display: block !important; text-align: center; margin-bottom: 25px; }
+          body { background: white !important; font-family: sans-serif; color: black !important; }
           * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color: black !important; }
-          
-          h3 { font-size: 16pt; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #333; padding-bottom: 5px; margin-top: 30px; margin-bottom: 15px; page-break-after: avoid; }
-          h4 { font-size: 13pt; margin-top: 20px; margin-bottom: 10px; border-left: 4px solid #000; padding-left: 10px; }
-          
-          table.print-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-          table.print-table td, table.print-table th { padding: 8px 5px; border-bottom: 1px dashed #ccc; text-align: left; font-size: 10pt; }
-          table.print-table th { border-bottom: 1.5px solid #000; font-weight: 900; text-transform: uppercase; font-size: 9pt; }
+          h3, h4 { border-bottom: 1px solid #ddd; padding-bottom: 5px; margin-bottom: 10px; margin-top: 20px; page-break-after: avoid; }
+          table.print-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+          table.print-table td, table.print-table th { padding: 6px 0; border-bottom: 1px dashed #eee; text-align: left; }
+          table.print-table th { border-bottom: 1px solid #ccc; }
         }
         .print-header, .print-only { display: none; }
       `}</style>
@@ -224,14 +221,10 @@ export default function DailySummary() {
       </div>
 
       <div className="print-header">
-        <img src="/logo.png" alt="WellMed" className="print-logo" />
-        <h2 style={{margin:'0', fontSize: '26pt', fontWeight: '900', letterSpacing: '-1px'}}>WellMed</h2>
-        <p style={{margin:'2px 0 15px 0', fontSize: '11pt', fontWeight:'600', color: '#334155'}}>Specialist Medical & Diabetic Care</p>
-        <div style={{height: '1px', background: '#e2e8f0', width: '60%', margin: '0 auto 15px auto'}}></div>
-        <h3 style={{margin:'0 0 5px 0', border: 'none', padding: 0, fontSize: '18pt'}}>DAILY SUMMARY REPORT</h3>
-        <p style={{margin:0, fontWeight:'700', fontSize: '10pt', textTransform: 'uppercase', color: '#64748b'}}>
-          Date: {reportDate} | Report Type: {activeTab === 'earnings' ? 'Financial Earnings' : 'Staff Attendance'}
-        </p>
+        <h2 style={{margin:'0', fontSize: '24pt'}}>WellMed</h2>
+        <h4 style={{margin:'5px 0 15px 0', fontWeight:'normal'}}>Specialist Medical & Diabetic Care</h4>
+        <h3 style={{margin:'0 0 5px 0', textDecoration:'underline'}}>Daily Summary Report</h3>
+        <p style={{margin:0, fontWeight:'600'}}>Date: {reportDate} | Report Type: {activeTab === 'earnings' ? 'Financial Earnings' : 'Staff Attendance'}</p>
       </div>
 
       {loading ? (
@@ -285,7 +278,7 @@ export default function DailySummary() {
                         <div style={{fontSize:'1.5rem', fontWeight:'800', color:'#0284c7'}}>{stats.counts.opd}</div>
                       </div>
                       <div style={{flex:1, minWidth:'120px'}}>
-                        <div style={{color:'#64748b', fontWeight:'700', fontSize:'0.9rem'}}>CHANNELLING</div>
+                        <div style={{color:'#64748b', fontWeight:'700', fontSize:'0.9rem'}}>CHANNELING</div>
                         <div style={{fontSize:'1.5rem', fontWeight:'800', color:'#16a34a'}}>{stats.counts.chan}</div>
                       </div>
                       <div style={{flex:1, minWidth:'120px'}}>
@@ -319,7 +312,7 @@ export default function DailySummary() {
                 </div>
 
                 <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'2rem', alignItems: 'start'}}>
-                   {/* Left Col: Channelling & Procedures */}
+                   {/* Left Col: Channeling & Procedures */}
                    <div style={{display:'flex', flexDirection:'column', gap:'2rem'}}>
                       {/* Procedures Breakdown */}
                       <div style={{background:'white', border:'1px solid #e2e8f0', borderRadius:'12px', padding:'1.5rem'}}>
@@ -354,11 +347,11 @@ export default function DailySummary() {
                          </div>
                       </div>
 
-                      {/* Channelling Breakdown */}
+                      {/* Channeling Breakdown */}
                       <div style={{background:'white', border:'1px solid #e2e8f0', borderRadius:'12px', padding:'1.5rem'}}>
-                         <h4 style={{color:'#1e293b', margin:'0 0 15px 0', fontSize:'1.1rem'}}>Channelling Breakdown</h4>
+                         <h4 style={{color:'#1e293b', margin:'0 0 15px 0', fontSize:'1.1rem'}}>Channeling Breakdown</h4>
                          {Object.keys(stats.chanDoctorBreakdown).length === 0 ? (
-                           <div style={{color:'#94a3b8', fontStyle:'italic'}}>No channelling records today.</div>
+                           <div style={{color:'#94a3b8', fontStyle:'italic'}}>No channeling records today.</div>
                          ) : (
                            Object.entries(stats.chanDoctorBreakdown).map(([docName, vals], i) => (
                              <div key={i} style={{marginBottom:'1rem', paddingBottom:'1rem', borderBottom:'1px solid #f1f5f9'}}>
@@ -413,7 +406,7 @@ export default function DailySummary() {
                       <td>OPD Patients:</td><td><b>{stats.counts.opd}</b></td>
                     </tr>
                     <tr>
-                      <td>Channelling Patients:</td><td><b>{stats.counts.chan}</b></td>
+                      <td>Channeling Patients:</td><td><b>{stats.counts.chan}</b></td>
                       <td>Procedure Billings:</td><td><b>{stats.counts.proc}</b></td>
                     </tr>
                   </tbody>
@@ -424,7 +417,7 @@ export default function DailySummary() {
                   <tbody>
                     <tr><td style={{width:'50%'}}>TOTAL DAILY REVENUE:</td><td><b>Rs. {stats.amounts.total.toFixed(2)}</b></td></tr>
                     <tr><td>OPD Revenue:</td><td>Rs. {stats.amounts.opd.toFixed(2)}</td></tr>
-                    <tr><td>Channelling Revenue:</td><td>Rs. {stats.amounts.chan.toFixed(2)}</td></tr>
+                    <tr><td>Channeling Revenue:</td><td>Rs. {stats.amounts.chan.toFixed(2)}</td></tr>
                     <tr><td>Procedures Revenue:</td><td>Rs. {stats.amounts.proc.toFixed(2)}</td></tr>
                   </tbody>
                 </table>
@@ -444,7 +437,7 @@ export default function DailySummary() {
 
                 {Object.keys(stats.chanDoctorBreakdown).length > 0 && (
                   <>
-                    <h3>Channelling Breakdown</h3>
+                    <h3>Channeling Breakdown</h3>
                     <table className="print-table">
                       <thead>
                         <tr><th>Doctor Name</th><th>Doctor's Pay</th><th>Hospital Share</th></tr>
@@ -491,11 +484,11 @@ export default function DailySummary() {
             <>
               {/* === SCREEN VIEW ONLY === */}
               <div className="fade-in no-print">
-                {['Channelling', 'OPD', 'Nurses & Staff'].map((groupTitle) => {
+                {['Channeling', 'OPD', 'Nurses & Staff'].map((groupTitle) => {
                   let groupData = [];
                   const isDoctor = (a) => a.category === 'doctor' || a.docType || ['Doctor', 'MO', 'Physician'].includes(a.role);
-                  if (groupTitle === 'Channelling') {
-                    groupData = attendance.filter(a => isDoctor(a) && a.docType === 'Channelling');
+                  if (groupTitle === 'Channeling') {
+                    groupData = attendance.filter(a => isDoctor(a) && a.docType === 'Channeling');
                   } else if (groupTitle === 'OPD') {
                     groupData = attendance.filter(a => isDoctor(a) && a.docType === 'OPD');
                   } else {
@@ -540,11 +533,11 @@ export default function DailySummary() {
 
               {/* === PRINT VIEW ONLY === */}
               <div className="print-only">
-                {['Channelling', 'OPD', 'Nurses & Staff'].map((groupTitle) => {
+                {['Channeling', 'OPD', 'Nurses & Staff'].map((groupTitle) => {
                   let groupData = [];
                   const isDoctor = (a) => a.category === 'doctor' || a.docType || ['Doctor', 'MO', 'Physician'].includes(a.role);
-                  if (groupTitle === 'Channelling') {
-                    groupData = attendance.filter(a => isDoctor(a) && a.docType === 'Channelling');
+                  if (groupTitle === 'Channeling') {
+                    groupData = attendance.filter(a => isDoctor(a) && a.docType === 'Channeling');
                   } else if (groupTitle === 'OPD') {
                     groupData = attendance.filter(a => isDoctor(a) && a.docType === 'OPD');
                   } else {
@@ -580,7 +573,7 @@ export default function DailySummary() {
           )}
 
           <div className="no-print" style={{display:'flex', justifyContent:'center', marginTop:'3rem'}}>
-            <button onClick={() => window.print()} style={{background:'#0369a1', color:'white', border:'none', padding:'12px 30px', borderRadius:'8px', fontWeight:'800', fontSize:'1rem', cursor:'pointer', display:'inline-flex', alignItems:'center', gap:'8px', boxShadow:'0 4px 10px rgba(3, 105, 161, 0.3)'}}>
+            <button onClick={() => window.print()} style={{background:'#00B4D8', color:'white', border:'none', padding:'12px 30px', borderRadius:'8px', fontWeight:'800', fontSize:'1rem', cursor:'pointer', display:'inline-flex', alignItems:'center', gap:'8px', boxShadow:'0 4px 10px rgba(0, 180, 216, 0.3)'}}>
               🖨️ Print Detailed Report
             </button>
           </div>

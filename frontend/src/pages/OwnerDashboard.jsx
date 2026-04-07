@@ -139,37 +139,36 @@ export default function OwnerDashboard() {
           bottom: 20px;
           left: 20px;
           right: 20px;
-          background: rgba(15, 23, 42, 0.95);
+          background: rgba(15, 23, 42, 0.9);
           backdrop-filter: blur(12px);
-          box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+          box-shadow: 0 10px 30px rgba(0,0,0,0.3);
           z-index: 1000;
-          padding: 10px 15px;
+          padding: 12px 20px;
           justify-content: space-around;
-          border-radius: 20px;
+          border-radius: 24px;
           border: 1px solid rgba(255,255,255,0.1);
         }
         .mobile-nav-item {
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: 4px;
+          gap: 6px;
           background: none;
           border: none;
           color: #94a3b8;
-          font-size: 0.65rem;
+          font-size: 0.7rem;
           font-weight: 700;
           cursor: pointer;
           transition: all 0.3s;
-          padding: 8px 12px;
+          padding: 8px;
           border-radius: 12px;
         }
         .mobile-nav-item.active {
           color: #0ea5e9;
-          background: rgba(14, 165, 233, 0.15);
+          background: rgba(14, 165, 233, 0.1);
         }
         .mobile-nav-icon {
-          font-size: 1.4rem;
-          margin-bottom: 2px;
+          font-size: 1.5rem;
         }
         
         .stat-card-premium {
@@ -179,8 +178,6 @@ export default function OwnerDashboard() {
           box-shadow: 0 4px 20px rgba(0,0,0,0.03);
           border: 1px solid #f1f5f9;
           transition: transform 0.2s, box-shadow 0.2s;
-          display: flex;
-          flex-direction: column;
         }
         .stat-card-premium:hover {
           transform: translateY(-5px);
@@ -192,30 +189,17 @@ export default function OwnerDashboard() {
           .mobile-nav { display: flex; }
           .main-content { margin-left: 0 !important; padding: 1.5rem !important; padding-bottom: 120px !important; }
           .stats-grid-top { grid-template-columns: repeat(2, 1fr) !important; gap: 15px !important; }
-          .owner-main-grid { grid-template-columns: 1fr !important; gap: 20px !important; }
-          .brand-header-horizontal { 
-            flex-direction: column !important; 
-            text-align: center !important; 
-            gap: 15px !important;
-            padding-top: 1rem !important;
-          }
-          .hospital-name-header { font-size: 2rem !important; line-height: 1 !important; }
-          .hospital-tagline { font-size: 1rem !important; }
-        }
-
-        @media (max-width: 600px) {
-          .stats-grid-top { grid-template-columns: 1fr !important; }
-          .activity-grid { grid-template-columns: 1fr !important; gap: 10px !important; }
-          .stat-card-premium { padding: 1.25rem !important; }
+          .owner-main-grid { grid-template-columns: 1fr !important; gap: 15px !important; }
+          .brand-header-horizontal { padding-top: 0.5rem !important; }
+          .hospital-name-header { font-size: 1.5rem !important; }
         }
 
         @media (max-width: 480px) {
-          .main-content { padding: 1rem !important; padding-bottom: 110px !important; }
-          .header-logo-large { width: 60px !important; height: 60px !important; }
-          .hospital-name-header { font-size: 1.75rem !important; }
-          .mobile-nav { bottom: 12px; left: 12px; right: 12px; padding: 10px !important; border-radius: 18px !important; }
-          .mobile-nav-icon { font-size: 1.25rem !important; }
-          .mobile-nav-item { font-size: 0.6rem !important; padding: 6px !important; }
+          .stats-grid-top { grid-template-columns: 1fr !important; }
+          .brand-header-horizontal { gap: 10px !important; }
+          .header-logo-large { width: 45px !important; height: 45px !important; }
+          .hospital-name-header { font-size: 1.25rem !important; }
+          .mobile-nav { bottom: 10px; left: 10px; right: 10px; padding: 8px 10px; }
         }
       `}</style>
 
@@ -302,21 +286,21 @@ export default function OwnerDashboard() {
                 <div style={{display:'flex', flexDirection:'column', gap:'20px'}}>
                   <div className="stat-card-premium">
                      <h3 style={{margin:'0 0 1.5rem 0', fontWeight:'900', fontSize:'0.9rem', color:'#0f172a', textTransform:'uppercase', letterSpacing: '0.5px', whiteSpace: 'nowrap'}}>Activity Breakdown</h3>
-                     <div className="activity-grid" style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'12px'}}>
-                        <div style={{background:'#f8fafc', padding:'1.2rem 1rem', borderRadius:'14px', textAlign:'center', display: 'flex', flexDirection: 'column', justifyContent: 'center'}}>
+                     <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'12px'}}>
+                        <div style={{background:'#f8fafc', padding:'1.2rem 1rem', borderRadius:'14px', textAlign:'center'}}>
                           <div style={{fontSize:'1.6rem', fontWeight:'900', color: '#0ea5e9'}}>{stats.chanCount}</div>
-                          <div style={{fontSize:'0.65rem', fontWeight:'800', color:'#64748b', textTransform: 'uppercase', letterSpacing: '0.5px'}}>Channelling</div>
-			                    <div style={{fontSize:'0.85rem', fontWeight:'900', color: '#334155', marginTop: '6px'}}>Rs. {stats.chanRevenueToday.toLocaleString()}</div>
+                          <div style={{fontSize:'0.65rem', fontWeight:'800', color:'#64748b', textTransform: 'uppercase'}}>Channeling</div>
+			  <div style={{fontSize:'0.8rem', fontWeight:'800', color: '#334155', marginTop: '6px'}}>Rs. {stats.chanRevenueToday.toLocaleString()}</div>
                         </div>
-                        <div style={{background:'#f8fafc', padding:'1.2rem 1rem', borderRadius:'14px', textAlign:'center', display: 'flex', flexDirection: 'column', justifyContent: 'center'}}>
+                        <div style={{background:'#f8fafc', padding:'1.2rem 1rem', borderRadius:'14px', textAlign:'center'}}>
                           <div style={{fontSize:'1.6rem', fontWeight:'900', color: '#10b981'}}>{stats.opdCount}</div>
-                          <div style={{fontSize:'0.65rem', fontWeight:'800', color:'#64748b', textTransform: 'uppercase', letterSpacing: '0.5px'}}>OPD VISITS</div>
-			                    <div style={{fontSize:'0.85rem', fontWeight:'900', color: '#334155', marginTop: '6px'}}>Rs. {stats.opdRevenueToday.toLocaleString()}</div>
+                          <div style={{fontSize:'0.65rem', fontWeight:'800', color:'#64748b', textTransform: 'uppercase'}}>OPD Visits</div>
+			  <div style={{fontSize:'0.8rem', fontWeight:'800', color: '#334155', marginTop: '6px'}}>Rs. {stats.opdRevenueToday.toLocaleString()}</div>
                         </div>
-                        <div style={{background:'#f8fafc', padding:'1.2rem 1rem', borderRadius:'14px', textAlign:'center', display: 'flex', flexDirection: 'column', justifyContent: 'center'}}>
+                        <div style={{background:'#f8fafc', padding:'1.2rem 1rem', borderRadius:'14px', textAlign:'center'}}>
                           <div style={{fontSize:'1.6rem', fontWeight:'900', color: '#f59e0b'}}>{stats.procCount}</div>
-                          <div style={{fontSize:'0.65rem', fontWeight:'800', color:'#64748b', textTransform: 'uppercase', letterSpacing: '0.5px'}}>Procedures</div>
-			                    <div style={{fontSize:'0.85rem', fontWeight:'900', color: '#334155', marginTop: '6px'}}>Rs. {stats.procRevenueToday.toLocaleString()}</div>
+                          <div style={{fontSize:'0.65rem', fontWeight:'800', color:'#64748b', textTransform: 'uppercase'}}>Procedures</div>
+			  <div style={{fontSize:'0.8rem', fontWeight:'800', color: '#334155', marginTop: '6px'}}>Rs. {stats.procRevenueToday.toLocaleString()}</div>
                         </div>
                      </div>
                   </div>

@@ -4,7 +4,8 @@ import { doc, getDoc, setDoc, collection, addDoc, getDocs, deleteDoc, updateDoc 
 import toast from 'react-hot-toast';
 
 export default function ManageServices() {
-  const [opdFee, setOpdFee] = useState('');
+  const [opdMorningFee, setOpdMorningFee] = useState('');
+  const [opdEveningFee, setOpdEveningFee] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
   // Additional Services Management
@@ -25,7 +26,9 @@ export default function ManageServices() {
         const docRef = doc(db, 'settings', 'pricing');
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-          setOpdFee(docSnap.data().opd_fee || 1000);
+          const data = docSnap.data();
+          setOpdMorningFee(data.opd_morning_fee || data.opd_fee || 1000);
+          setOpdEveningFee(data.opd_evening_fee || data.opd_fee || 1500);
         }
         
         // Fetch Additional Procedures
@@ -45,8 +48,9 @@ export default function ManageServices() {
     const loadingId = toast.loading("Saving global pricing...");
     try {
       await setDoc(doc(db, 'settings', 'pricing'), {
-        opd_fee: Number(opdFee)
-      });
+        opd_morning_fee: Number(opdMorningFee),
+        opd_evening_fee: Number(opdEveningFee)
+      }, { merge: true });
       toast.success("Default pricing updated!", { id: loadingId });
     } catch (err) {
       toast.error("Failed to save pricing.", { id: loadingId });
@@ -181,9 +185,15 @@ export default function ManageServices() {
           <div className="form-card" style={{maxWidth:'600px', margin:'0 auto'}}>
              <h3 style={{marginBottom:'1.5rem'}}>1. Global Default Fees</h3>
              <form onSubmit={handleSavePricing} className="grid-form">
-              <div className="form-group" style={{gridColumn:'1 / -1'}}>
-                <label>OPD Consultation (LKR)</label>
-                <input type="number" value={opdFee} onChange={e => setOpdFee(e.target.value)} required style={{fontSize:'1.2rem'}} />
+              <div className="form-group" style={{gridColumn:'1 / -1', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem'}}>
+                <div>
+                  <label>OPD Consultation (Morning - Before 12 PM) LKR</label>
+                  <input type="number" value={opdMorningFee} onChange={e => setOpdMorningFee(e.target.value)} required style={{fontSize:'1.2rem', width:'100%'}} />
+                </div>
+                <div>
+                  <label>OPD Consultation (Evening - After 12 PM) LKR</label>
+                  <input type="number" value={opdEveningFee} onChange={e => setOpdEveningFee(e.target.value)} required style={{fontSize:'1.2rem', width:'100%'}} />
+                </div>
               </div>
               <div style={{gridColumn:'1 / -1', display:'flex', justifyContent:'center', marginTop:'1.5rem'}}>
                  <button type="submit" className="action-btn submit-btn" style={{margin:0, padding:'0.8rem 2.5rem', background: '#00B4D8', width: 'auto', borderRadius:'10px'}}>Save Defaults</button>

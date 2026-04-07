@@ -57,6 +57,8 @@ function Login() {
       else formatEmail = username.includes('@') ? username : `${username}@wellmed.com`;
       
       await signInWithEmailAndPassword(auth, formatEmail, password);
+      
+      localStorage.removeItem('wellmed_activeTab');
 
       // Record Login Activity
       try {

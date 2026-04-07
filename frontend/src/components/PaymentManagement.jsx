@@ -18,24 +18,18 @@ const formatAMPM = (timeStr) => {
 
 const PRINT_STYLES = `
   @media print {
-    @page { margin: 12mm; size: A4 portrait; }
+    @page { margin: 15mm; size: A4 portrait; }
     .no-print { display: none !important; }
     .print-only { display: block !important; }
-    body { background: white !important; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; color: black !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    body { background: white !important; margin: 0; padding: 0; font-family: sans-serif; color: black !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
     .registration-panel { border: none !important; padding: 0 !important; margin: 0 !important; width: 100% !important; max-width: 100% !important; box-shadow: none !important; background: white !important; }
     .report-print-container { padding: 0; background: white !important; }
-    
-    table { width: 100% !important; border-collapse: collapse !important; margin-bottom: 25px; }
-    th, td { border: none !important; border-bottom: 1px dashed #ccc !important; padding: 8px 6px !important; font-size: 10pt !important; color: #000 !important; text-align: left; }
-    th { border-bottom: 2px solid #000 !important; font-weight: 900; background: transparent !important; text-transform: uppercase; font-size: 9pt; }
-    
-    .print-header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #000; padding-bottom: 20px; }
-    .print-logo { width: 80px; height: auto; margin-bottom: 10px; }
-    .print-hospital-name { font-size: 26pt; font-weight: 900; color: #000; margin-bottom: 2px; letter-spacing: -1px; }
-    
-    h3, h4 { color: #000 !important; border-bottom: none; padding-bottom: 0; margin-top: 25px; margin-bottom: 10px; page-break-after: avoid; font-weight: 800; }
-    h3 { font-size: 18pt; text-decoration: underline; text-underline-offset: 4px; }
-    h4 { font-size: 13pt; border-left: 5px solid #000; padding-left: 10px; }
+    table { width: 100% !important; border-collapse: collapse !important; margin-bottom: 20px; }
+    th, td { border: none !important; border-bottom: 1px dashed #ccc !important; padding: 6px 4px !important; font-size: 9.5pt !important; color: #000 !important; text-align: left; }
+    th { border-bottom: 1px solid #aaa !important; font-weight: bold; background: transparent !important; }
+    .print-header { text-align: center; margin-bottom: 25px; }
+    .print-hospital-name { font-size: 22pt; font-weight: bold; color: #000; margin-bottom: 5px; }
+    h3, h4 { color: #000 !important; border-bottom: 1px solid #ddd; padding-bottom: 4px; margin-top: 15px; margin-bottom: 10px; page-break-after: avoid; font-size: 12pt; font-weight: bold; text-decoration: none !important; }
   }
   .print-only { display: none; }
 `;
@@ -74,7 +68,7 @@ export default function PaymentManagement({ bypassPassword = false }) {
   const [reportGenerated, setReportGenerated] = useState(false);
 
   const [opdTotal, setOpdTotal] = useState(0);
-  const [channellingTotal, setChannellingTotal] = useState(0);
+  const [channelingTotal, setChannelingTotal] = useState(0);
   const [procNurseTotal, setProcNurseTotal] = useState(0);
   const [procDoctorTotal, setProcDoctorTotal] = useState(0);
   const [procHospitalTotal, setProcHospitalTotal] = useState(0);
@@ -85,7 +79,7 @@ export default function PaymentManagement({ bypassPassword = false }) {
   
   const [nurseList, setNurseList] = useState([]);
   const [doctorList, setDoctorList] = useState([]);
-  const [channellingDoctorList, setChannellingDoctorList] = useState([]);
+  const [channelingDoctorList, setChannelingDoctorList] = useState([]);
   const [allDocData, setAllDocData] = useState([]);
 
   const [selectedNurseName, setSelectedNurseName] = useState('');
@@ -115,7 +109,7 @@ export default function PaymentManagement({ bypassPassword = false }) {
       const dArr = dSnap.docs.map(d => ({ id: d.id, ...d.data() }));
       setAllDocData(dArr);
       setDoctorList(dArr.filter(d => d.type === 'OPD').map(d => d.name));
-      setChannellingDoctorList(dArr.filter(d => d.type === 'Channelling').map(d => d.name));
+      setChannelingDoctorList(dArr.filter(d => d.type === 'Channeling').map(d => d.name));
       const sSnap = await getDocs(collection(db, 'staff'));
       setNurseList(sSnap.docs.filter(s => ['Nurse', 'Training Nurse'].includes(s.data().role)).map(s => s.data().name));
     };
@@ -142,10 +136,10 @@ export default function PaymentManagement({ bypassPassword = false }) {
       fVisits.forEach(v => {
         const fee = Number(v.amount) || (Number(v.doctorCharge || 0) + Number(v.hospitalCharge || 0));
         const isOPD = v.serviceType === 'OPD' || v.type === 'OPD';
-        const isChan = v.serviceType === 'Channelling' || (!isOPD && (v.serviceType === 'Channelling' || v.type === 'Channelling' || v.appointmentNo?.startsWith('CH')));
+        const isChan = v.serviceType === 'Channeling' || (!isOPD && (v.serviceType === 'Channeling' || v.type === 'Channeling' || v.appointmentNo?.startsWith('CH')));
         if (isOPD) oSum += fee; else if (isChan) cSum += fee;
       });
-      setOpdTotal(oSum); setChannellingTotal(cSum);
+      setOpdTotal(oSum); setChannelingTotal(cSum);
       const pSnap = await getDocs(collection(db, 'additional_visit_services'));
       const fProcs = pSnap.docs.map(d => ({ id: d.id, ...d.data() })).filter(p => {
         const t = toMs(p.timestamp); return t >= startTs && t <= endTs;
@@ -232,13 +226,13 @@ export default function PaymentManagement({ bypassPassword = false }) {
           <select value={selectedDoctorName} onChange={e => { 
             const val = e.target.value; setSelectedDoctorName(val); setSelectedNurseName('');
             if (doctorList.includes(val)) setSelectedDoctorType('OPD');
-            else if (channellingDoctorList.includes(val)) setSelectedDoctorType('Channelling');
+            else if (channelingDoctorList.includes(val)) setSelectedDoctorType('Channeling');
             else setSelectedDoctorType('');
             setReportGenerated(false);
           }} style={{ flex: '1 1 200px', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
             <option value="">-- All Doctors --</option>
             {doctorList.length > 0 && <optgroup label="OPD">{doctorList.map(d => <option key={d} value={d}>{d}</option>)}</optgroup>}
-            {channellingDoctorList.length > 0 && <optgroup label="Channelling">{channellingDoctorList.map(d => <option key={d} value={d}>{d}</option>)}</optgroup>}
+            {channelingDoctorList.length > 0 && <optgroup label="Channeling">{channelingDoctorList.map(d => <option key={d} value={d}>{d}</option>)}</optgroup>}
           </select>
           <button onClick={generateReport} disabled={isLoading} style={{ width: '130px', background: '#00B4D8', color: 'white', border: 'none', padding: '10px 16px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>{isLoading ? '...' : 'Generate'}</button>
         </div>
@@ -247,19 +241,17 @@ export default function PaymentManagement({ bypassPassword = false }) {
       {reportGenerated && (
         <div className="report-print-container">
           <div className="print-only print-header">
-            <img src="/logo.png" alt="WellMed" className="print-logo" />
-            <h2 className="print-hospital-name">WellMed</h2>
-            <p style={{margin:'0 0 15px 0', fontSize: '11pt', fontWeight:'600', color: '#334155'}}>Specialist Medical &amp; Diabetic Care</p>
-            <div style={{height: '1px', background: '#ccc', width: '60%', margin: '0 auto 15px auto'}}></div>
-            <h3 style={{margin:'0 0 10px 0'}}>{isAudit ? 'STAFF PERFORMANCE AUDIT' : 'FINANCIAL SUMMARY REPORT'}</h3>
-            <p style={{ margin: '5px 0', fontWeight:'800', fontSize: '10pt', color: '#4b5563', textTransform: 'uppercase' }}>Period: {filterMode === 'daily' ? singleDate : `${startDate} to ${endDate}`}</p>
+            <h2 style={{margin:'0', fontSize: '24pt', fontWeight: 'bold'}}>WellMed</h2>
+            <h4 style={{margin:'5px 0 15px 0', fontWeight:'normal', textDecoration:'none', borderBottom:'none', paddingBottom:0}}>Specialist Medical &amp; Diabetic Care</h4>
+            <h3 style={{margin:'0 0 5px 0', textDecoration:'underline', borderBottom:'none', paddingBottom:0}}>{isAudit ? 'STAFF AUDIT REPORT' : 'FINANCIAL SUMMARY REPORT'}</h3>
+            <p style={{ margin: '5px 0', fontWeight:'600' }}>Period: {filterMode === 'daily' ? singleDate : `${startDate} to ${endDate}`}</p>
           </div>
           {!isAudit && (
             <div className="no-print">
               <div style={{ display: 'flex', gap: '1.2rem', flexWrap: 'wrap', marginBottom: '2rem' }}>
                 <Card label="Total Admissions" value={visitRecords.length + procRecords.length} icon="👥" sub="Aggregate caseload" />
                 <Card label="OPD Revenue" value={fmt(opdTotal)} color="#0369a1" sub={`${visitRecords.filter(v=>v.serviceType==='OPD').length} Patients`} />
-                <Card label="Channelling Revenue" value={fmt(channellingTotal)} color="#7c3aed" sub={`${visitRecords.filter(v=>v.serviceType==='Channelling').length} Patients`} />
+                <Card label="Channeling Revenue" value={fmt(channelingTotal)} color="#7c3aed" sub={`${visitRecords.filter(v=>v.serviceType==='Channeling').length} Patients`} />
                 <Card label="Total Proc. Value" value={fmt(procHospitalTotal+procDoctorTotal+procNurseTotal)} color="#16a34a" sub={`${procRecords.length} Procedures`} />
               </div>
             </div>
@@ -386,9 +378,9 @@ export default function PaymentManagement({ bypassPassword = false }) {
                         <td style={{padding: '12px', textAlign: 'right'}}>{fmt(opdTotal)}</td>
                       </tr>
                       <tr style={{borderBottom: '1px solid #f1f5f9'}}>
-                        <td style={{padding: '12px', fontWeight: '600'}}>Specialist Channelling</td>
-                        <td style={{padding: '12px', textAlign: 'center'}}><strong>{visitRecords.filter(v=> v.serviceType=== 'Channelling' || v.type === 'Channelling' || v.appointmentNo?.startsWith('CH')).length}</strong></td>
-                        <td style={{padding: '12px', textAlign: 'right'}}>{fmt(channellingTotal)}</td>
+                        <td style={{padding: '12px', fontWeight: '600'}}>Specialist Channeling</td>
+                        <td style={{padding: '12px', textAlign: 'center'}}><strong>{visitRecords.filter(v=> v.serviceType=== 'Channeling' || v.type === 'Channeling' || v.appointmentNo?.startsWith('CH')).length}</strong></td>
+                        <td style={{padding: '12px', textAlign: 'right'}}>{fmt(channelingTotal)}</td>
                       </tr>
                       <tr style={{borderBottom: '1px solid #f1f5f9'}}>
                         <td style={{padding: '12px', fontWeight: '600'}}>Clinical Procedures</td>
@@ -461,7 +453,7 @@ export default function PaymentManagement({ bypassPassword = false }) {
              )}
 
              <div className="no-print" style={{ display: 'flex', justifyContent: 'center', marginTop: '40px' }}>
-                <button onClick={() => window.print()} style={{ background: '#0369a1', color: 'white', border: 'none', padding: '14px 45px', borderRadius: '12px', fontWeight: '800', cursor: 'pointer', boxShadow: '0 8px 18px rgba(3,105,161,0.25)', fontSize: '1rem', transition: '0.3s' }}>
+                <button onClick={() => window.print()} style={{ background: '#00B4D8', color: 'white', border: 'none', padding: '14px 45px', borderRadius: '12px', fontWeight: '800', cursor: 'pointer', boxShadow: '0 8px 18px rgba(0,180,216,0.25)', fontSize: '1rem', transition: '0.3s' }}>
                   Print Detailed Financial Report
                 </button>
              </div>

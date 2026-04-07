@@ -12,7 +12,7 @@ export default function DoctorManagement() {
   // Form States
   const [name, setName] = useState('');
   const [specialization, setSpecialization] = useState('');
-  const [type, setType] = useState('Channelling'); // 'OPD' or 'Channelling'
+  const [type, setType] = useState('Channeling'); // 'OPD' or 'Channeling'
   const [qualifications, setQualifications] = useState('');
   const [photoUrl, setPhotoUrl] = useState('');
   const [birthday, setBirthday] = useState('');
@@ -97,8 +97,8 @@ export default function DoctorManagement() {
         email: email.trim().toLowerCase(),
         photoUrl: photoUrl || 'https://via.placeholder.com/150',
         hourlyRate: type === 'OPD' ? Number(hourlyRate) || 0 : 0,
-        doctorCharge: type === 'Channelling' ? Number(doctorCharge) || 0 : 0,
-        hospitalCharge: type === 'Channelling' ? Number(hospitalCharge) || 0 : 0
+        doctorCharge: type === 'Channeling' ? Number(doctorCharge) || 0 : 0,
+        hospitalCharge: type === 'Channeling' ? Number(hospitalCharge) || 0 : 0
       };
       
       if (editingId) {
@@ -147,7 +147,7 @@ export default function DoctorManagement() {
     setEditingId(null);
     setName('');
     setSpecialization('');
-    setType('Channelling');
+    setType('Channeling');
     setQualifications('');
     setPhotoUrl('');
     setBirthday('');
@@ -188,40 +188,37 @@ export default function DoctorManagement() {
               <label>Specialization / Designation</label>
               <input type="text" placeholder="e.g. Cardiologist / MO" value={specialization} onChange={e=>setSpecialization(e.target.value)} required />
             </div>
+            <div className="form-group">
+              <label>Service Type</label>
+              <select value={type} onChange={e=>setType(e.target.value)} className="custom-select" required>
+                <option value="OPD">OPD Services</option>
+                <option value="Channeling">Private Channeling</option>
+              </select>
+            </div>
             <div className="form-group" style={{gridColumn:'1 / -1'}}>
               <label>Qualifications</label>
               <input type="text" placeholder="e.g. MBBS, MD, FRCP" value={qualifications} onChange={e=>setQualifications(e.target.value)} required />
             </div>
-            <div className="form-group">
-              <label>Service Type</label>
-              <select value={type} onChange={e=>setType(e.target.value)} className="custom-select" required>
-                  <option value="OPD">OPD Services</option>
-                  <option value="Channelling">Private Channelling</option>
-                </select>
+            {type === 'OPD' ? (
+              <div className="form-group">
+                <label>Hourly Payment Rate (LKR)</label>
+                <input type="number" value={hourlyRate} onChange={e=>setHourlyRate(e.target.value)} placeholder="e.g. 1500" required />
               </div>
-
-              {type === 'OPD' ? (
+            ) : (
+              <>
                 <div className="form-group">
-                  <label>Hourly Payment Rate (LKR)</label>
-                  <input type="number" value={hourlyRate} onChange={e=>setHourlyRate(e.target.value)} placeholder="e.g. 1500" required />
+                  <label>Doctor Charge (LKR)</label>
+                  <input type="number" value={doctorCharge} onChange={e=>setDoctorCharge(e.target.value)} placeholder="e.g. 2000" required />
                 </div>
-              ) : (
-                <>
-                  <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'20px'}}>
-                    <div className="form-group">
-                      <label>Doctor Charge (LKR)</label>
-                      <input type="number" value={doctorCharge} onChange={e=>setDoctorCharge(e.target.value)} placeholder="e.g. 2000" required />
-                    </div>
-                    <div className="form-group">
-                      <label>Hospital Charge (LKR)</label>
-                      <input type="number" value={hospitalCharge} onChange={e=>setHospitalCharge(e.target.value)} placeholder="e.g. 500" required />
-                    </div>
-                  </div>
-                  <div style={{fontSize:'0.85rem', color:'#64748b', marginTop:'-10px', marginBottom:'10px'}}>
-                    Total Channelling Fee: <b>Rs. {(Number(doctorCharge) + Number(hospitalCharge)).toFixed(2)}</b>
-                  </div>
-                </>
-              )}
+                <div className="form-group">
+                  <label>Hospital Charge (LKR)</label>
+                  <input type="number" value={hospitalCharge} onChange={e=>setHospitalCharge(e.target.value)} placeholder="e.g. 500" required />
+                </div>
+                <div style={{gridColumn:'1 / -1', fontSize:'0.85rem', color:'#64748b', marginTop:'-8px'}}>
+                  Total Channeling Fee: <b>Rs. {(Number(doctorCharge) + Number(hospitalCharge)).toFixed(2)}</b>
+                </div>
+              </>
+            )}
             <div className="form-group">
               <label>Birthday</label>
               <input type="date" value={birthday} onChange={e=>setBirthday(e.target.value)} />
@@ -237,12 +234,12 @@ export default function DoctorManagement() {
             <div className="form-group" style={{gridColumn:'1 / -1'}}>
               <label>Doctor's Profile Photo</label>
               <div style={{display:'flex', gap:'1rem', alignItems:'center', background:'#f8fafc', padding:'1rem', borderRadius:'12px', border:'2px dashed #e2e8f0'}}>
-                 <img src={photoUrl || 'https://via.placeholder.com/150'} alt="preview" style={{width:'80px', height:'80px', borderRadius:'14px', objectFit:'cover', border:'2px solid var(--primary-cyan)'}} />
-                 <input type="file" accept="image/*" onChange={handlePhotoSelect} id="doc-photo-upload" style={{display:'none'}} />
-                 <label htmlFor="doc-photo-upload" className="btn-sm" style={{background:'var(--primary-cyan)', color:'white', padding:'0.8rem 1.2rem', cursor:'pointer', borderRadius:'10px'}}>
-                   {photoUrl ? 'Change Photo' : 'Select Photo'}
-                 </label>
-                 {photoUrl && <button type="button" onClick={()=>setPhotoUrl('')} style={{background:'transparent', border:'none', color:'#ef4444', textDecoration:'underline', cursor:'pointer', fontWeight:'600'}}>Remove</button>}
+                <img src={photoUrl || 'https://via.placeholder.com/150'} alt="preview" style={{width:'80px', height:'80px', borderRadius:'14px', objectFit:'cover', border:'2px solid var(--primary-cyan)'}} />
+                <input type="file" accept="image/*" onChange={handlePhotoSelect} id="doc-photo-upload" style={{display:'none'}} />
+                <label htmlFor="doc-photo-upload" className="btn-sm" style={{background:'var(--primary-cyan)', color:'white', padding:'0.8rem 1.2rem', cursor:'pointer', borderRadius:'10px'}}>
+                  {photoUrl ? 'Change Photo' : 'Select Photo'}
+                </label>
+                {photoUrl && <button type="button" onClick={()=>setPhotoUrl('')} style={{background:'transparent', border:'none', color:'#ef4444', textDecoration:'underline', cursor:'pointer', fontWeight:'600'}}>Remove</button>}
               </div>
             </div>
             <button type="submit" className="action-btn submit-btn" style={{gridColumn:'1 / -1'}}>

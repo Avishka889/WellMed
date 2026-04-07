@@ -11,12 +11,7 @@
   --sidebar-w: 260px;
 }
 
-@media print {
-  @page { margin: 0 !important; size: auto; }
-  body { margin: 0 !important; padding: 1.5cm !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; background: white !important; }
-  .no-print { display: none !important; }
-  .receipt-paper { margin: 0 auto !important; box-shadow: none !important; border: none !important; width: 100% !important; max-width: 450px !important; }
-}
+/* Print styles consolidated below - do not add separate @media print blocks above */
 
 body {
   margin: 0;
@@ -290,49 +285,186 @@ body:has(.dashboard-layout) { background-image: none; background-color: #ffffff;
 }
 .pay-btn.active { background: var(--primary-orange); color: white; border-color: var(--primary-orange); box-shadow: 0 4px 12px rgba(244, 162, 97, 0.3); }
 
-/* RECEIPT CSS */
+/* RECEIPT CSS - POS Thermal Printer Optimized */
 .receipt-actions { display: flex; justify-content: flex-end; gap: 1rem; margin-bottom: 2rem; }
-.receipt-paper { background: white; max-width: 400px; margin: 0 auto; padding: 2rem; border: 1px solid #e2e8f0; box-shadow: 0 10px 30px rgba(0,0,0,0.05); font-family: monospace; color: black; }
-.receipt-header { text-align: center; margin-bottom: 1.5rem; }
-.receipt-logo { width: 60px; filter: grayscale(100%); margin-bottom: 10px; }
-.receipt-header h2 { margin: 0 0 5px 0; font-size: 1.1rem; font-weight: 800; }
-.receipt-header p { margin: 0; font-size: 0.8rem; }
-.divider { border-top: 1.5px solid #000; margin: 0.8rem 0; }
+.receipt-paper { background: white; max-width: 320px; margin: 0 auto; padding: 1.2rem 1rem; border: 1px solid #e2e8f0; box-shadow: 0 10px 30px rgba(0,0,0,0.05); font-family: 'Courier New', Courier, monospace; color: black; font-size: 0.78rem; }
+.receipt-header { text-align: center; margin-bottom: 0.8rem; }
+.receipt-logo { width: 50px; filter: grayscale(100%); margin-bottom: 6px; }
+.receipt-header h2 { margin: 0 0 3px 0; font-size: 0.95rem; font-weight: 800; }
+.receipt-header p { margin: 0; font-size: 0.72rem; }
+.divider { border-top: 1.5px dashed #000; margin: 0.5rem 0; }
 .title-row { text-align: center; }
-.title-row h2 { margin: 0 0 5px 0; text-transform: uppercase; font-size: 1.5rem; }
-.appt-no { font-size: 3rem; margin: 0; font-weight: 800; border: 2px solid black; display: inline-block; padding: 5px 20px; border-radius: 10px;}
-.receipt-details p { margin: 8px 0; font-size: 0.95rem; }
-.doctor-box { margin-top: 1rem; padding-top: 1rem; border-top: 1px dotted black; }
-.receipt-footer { text-align: center; font-size: 0.9rem; }
-.fee-line { font-size: 1.2rem; margin-bottom: 5px; }
+.title-row h2 { margin: 0 0 4px 0; text-transform: uppercase; font-size: 1rem; }
+.appt-no { font-size: 2.2rem; margin: 0; font-weight: 800; border: 2px solid black; display: inline-block; padding: 3px 16px; border-radius: 8px; }
+.receipt-details p { margin: 4px 0; font-size: 0.78rem; line-height: 1.4; word-wrap: break-word; overflow-wrap: break-word; }
+.doctor-box { margin-top: 0.6rem; padding-top: 0.6rem; border-top: 1px dotted black; font-size: 0.78rem; }
+.receipt-footer { text-align: center; font-size: 0.75rem; }
+.fee-line { font-size: 0.9rem; margin-bottom: 3px; font-weight: bold; }
 
 .fade-in { animation: fadeIn 0.4s ease forwards; }
 
-/* ================= PRINT MEDIA QUERY ================= */
+/* ================= PRINT MEDIA QUERY (80mm Thermal POS) ================= */
 @media print {
-  @page {
-    size: auto; /* Let browser or printer decide page size */
-    margin: 10mm;
+  @media print {
+    @page {
+      size: 80mm auto;
+      margin: 3mm 2mm;
+    }
   }
 
-  body { background: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  .no-print, .sidebar, .top-banner, .top-banner p, .top-banner h1, .dashboard-bg::before { display: none !important; }
-  .dashboard-layout { display: block !important; height: auto !important; background: transparent !important; }
-  .main-content { padding: 0 !important; background: transparent !important; position: static !important; }
-  .registration-panel { box-shadow: none !important; padding: 0 !important; max-width: 100% !important; margin: 0 !important; background: transparent !important; border: none !important; }
-  
-  /* Make the Receipt Print Small and Compact on One Page */
-  .receipt-paper { border: none !important; box-shadow: none !important; width: 100%; max-width: 400px; margin: 0 auto; padding: 0; display: block; page-break-inside: avoid; break-inside: avoid; }
-  
-  .receipt-header h2 { font-size: 1.2rem; margin: 0 0 5px 0; }
-  .receipt-header p { font-size: 0.85rem; margin: 0; }
-  .appt-no { font-size: 2.5rem; margin: 10px 0; border: 2px solid black; padding: 5px 20px; border-radius: 8px; display: inline-block; }
-  .title-row h2 { font-size: 1.2rem; margin-top: 10px; }
-  .receipt-details p { font-size: 0.95rem; margin: 5px 0; line-height: 1.3; }
-  .doctor-box { font-size: 0.95rem; margin-top: 8px; padding-top: 8px; }
-  .fee-line { font-size: 1.1rem; font-weight: bold; margin-bottom: 5px; }
-  .receipt-footer p { font-size: 0.85rem; margin: 5px 0; line-height: 1.2; }
-  
-  .receipt-logo { filter: grayscale(100%); width: 60px; margin-bottom: 5px; }
-  .divider { margin: 10px 0; }
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+    width: 80mm !important;
+    overflow: visible !important;
+    height: auto !important;
+  }
+
+  /* Hide everything except the receipt */
+  .no-print,
+  .sidebar,
+  .mobile-nav,
+  .brand-header-horizontal,
+  .step-indicator,
+  .receipt-actions,
+  .tab-content > *:not(.registration-panel),
+  .top-banner,
+  .cancel-btn,
+  .add-family-btn,
+  #toast-container,
+  [class*="toast"],
+  [class*="Toast"],
+  [class*="notification"] {
+    display: none !important;
+  }
+
+  .dashboard-layout {
+    display: block !important;
+    height: auto !important;
+    width: 80mm !important;
+    overflow: visible !important;
+  }
+
+  .main-content {
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 80mm !important;
+    background: transparent !important;
+    position: static !important;
+    overflow: visible !important;
+  }
+
+  .tab-content {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .registration-panel {
+    box-shadow: none !important;
+    padding: 0 !important;
+    max-width: 80mm !important;
+    width: 80mm !important;
+    margin: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    overflow: visible !important;
+  }
+
+  /* POS Thermal Receipt paper */
+  .receipt-paper {
+    border: none !important;
+    box-shadow: none !important;
+    width: 76mm !important;
+    max-width: 76mm !important;
+    margin: 0 auto !important;
+    padding: 1mm 0 !important;
+    font-size: 10.5pt !important;
+    font-family: 'Poppins', 'Segoe UI', sans-serif !important;
+    color: black !important;
+    overflow: visible !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    line-height: 1.2 !important;
+  }
+
+  .receipt-header {
+    margin-bottom: 5px !important;
+    text-align: center !important;
+  }
+  .receipt-logo { width: 45px !important; margin-bottom: 5px !important; }
+  .receipt-header h2 { font-size: 15pt !important; margin: 0 0 2px 0 !important; font-weight: 800 !important; }
+  .receipt-header p { font-size: 10pt !important; margin: 2px 0 !important; font-weight: 600 !important; }
+
+  .divider, .receipt-divider { margin: 6px 0 !important; border-top: 2px dashed #000 !important; border-style: dashed !important; }
+
+  .title-row { text-align: center !important; margin: 8px 0 !important; }
+  .title-row h2 { font-size: 11pt !important; margin: 4px 0 !important; letter-spacing: 1px !important; font-weight: 700 !important; }
+  .appt-no {
+    font-size: 22pt !important;
+    margin: 4px 0 !important;
+    padding: 2px 12px !important;
+    border: 2px solid black !important;
+    border-radius: 6px !important;
+    display: inline-block !important;
+    font-weight: 950 !important;
+  }
+
+  .receipt-details p, .info-item, .service-row {
+    font-size: 10pt !important;
+    margin: 3px 0 !important;
+    line-height: 1.4 !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    white-space: nowrap !important; /* Ensure they stay on one line */
+    max-width: 100% !important;
+    font-weight: 600 !important; /* Make everything bolder for thermal legibility */
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .receipt-details b, .info-item .label, .service-row span:first-child {
+    font-weight: 800 !important;
+  }
+
+  /* Inline flex rows */
+  .receipt-details p[style] {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    gap: 8px !important;
+  }
+
+  .doctor-box {
+    font-size: 10.5pt !important;
+    margin-top: 5px !important;
+    padding-top: 5px !important;
+    border-top: 1px dotted black !important;
+    font-weight: 700 !important;
+  }
+
+  .receipt-footer {
+    margin-top: 15px !important;
+    text-align: center !important;
+    font-size: 10pt !important;
+    border-top: 1px dashed #000 !important;
+    padding-top: 10px !important;
+  }
+  .receipt-footer p { margin: 4px 0 !important; line-height: 1.3 !important; font-weight: 700 !important; }
+  .small-text { font-size: 9pt !important; }
+  .fee-line, .total-section { font-size: 12pt !important; font-weight: 800 !important; margin-bottom: 4px !important; padding: 5px 0 !important; }
+
+  /* Info Grid for OtherServices.jsx */
+  .receipt-info-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 2px !important;
+    margin-bottom: 5px !important;
+  }
+  .info-item {
+    display: flex !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+  }
 }

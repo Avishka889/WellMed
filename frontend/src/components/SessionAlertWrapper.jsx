@@ -15,8 +15,8 @@ export default function SessionAlertWrapper() {
   const [snoozedRecords, setSnoozedRecords] = useState({});
 
   useEffect(() => {
-    // Run exactly every 1 minute
-    const interval = setInterval(checkAlerts, 60 * 1000);
+    // Run every 10 seconds for real-time alerts
+    const interval = setInterval(checkAlerts, 10 * 1000);
     // Initial check
     checkAlerts();
     return () => clearInterval(interval);
@@ -150,11 +150,16 @@ export default function SessionAlertWrapper() {
         </p>
         <p style={{margin:'0 0 1.5rem 0', color:'#475569', fontSize:'0.95rem'}}>
           <b>Marked In:</b> {(() => {
-            const [h, m] = alert.inTime.split(':');
-            let hr = parseInt(h);
-            const ap = hr >= 12 ? 'PM' : 'AM';
-            hr = hr % 12 || 12;
-            return `${hr}:${m} ${ap}`;
+            if (!alert.inTime || !alert.inTime.includes(':')) return alert.inTime || '-';
+            try {
+              const [h, m] = alert.inTime.split(':');
+              let hr = parseInt(h);
+              const ap = hr >= 12 ? 'PM' : 'AM';
+              hr = hr % 12 || 12;
+              return `${hr}:${m} ${ap}`;
+            } catch (e) {
+              return alert.inTime;
+            }
           })()} &nbsp;·&nbsp; <b>Session Ended:</b> {alert.endTimeStr}
         </p>
 

@@ -53,6 +53,7 @@ function Dashboard() {
 
   const handleLogout = async () => {
     try {
+      localStorage.removeItem('wellmed_activeTab');
       await signOut(auth);
       toast.success("Successfully logged out.", { id: 'logout' });
       navigate('/');
@@ -73,9 +74,9 @@ function Dashboard() {
           <span className="mobile-nav-icon">⚡</span>
           Services
         </button>
-        <button className={`mobile-nav-item ${activeTab === 'daily_summary' ? 'active' : ''}`} onClick={() => handleTabClick('daily_summary')}>
-          <span className="mobile-nav-icon">📊</span>
-          Updates
+        <button className={`mobile-nav-item ${activeTab === 'attendance' ? 'active' : ''}`} onClick={() => handleTabClick('attendance')}>
+          <span className="mobile-nav-icon">✅</span>
+          Attendance
         </button>
         <button className={`mobile-nav-item ${activeTab === 'payments' ? 'active' : ''}`} onClick={() => handleTabClick('payments')}>
           <span className="mobile-nav-icon">💰</span>
@@ -97,7 +98,7 @@ function Dashboard() {
             className={`menu-item ${activeTab === 'registration' ? 'active' : ''}`}
             onClick={() => handleTabClick('registration')}
           >
-            <span className="menu-icon">👥</span> OPD/Channelling
+            <span className="menu-icon">👥</span> OPD/Channeling
           </button>
           <button
             className={`menu-item ${activeTab === 'other_services' ? 'active' : ''}`}

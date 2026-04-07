@@ -61,13 +61,18 @@ const AttendanceRow = ({ member, att, onSave, onRemove }) => {
   };
 
   const formatAMPM = (timeStr) => {
-    if(!timeStr) return '';
-    const [h, m] = timeStr.split(':');
-    let hours = parseInt(h);
-    const ampm = hours >= 12 ? 'PM' : 'AM';
-    hours = hours % 12;
-    hours = hours ? hours : 12; 
-    return `${hours}:${m} ${ampm}`;
+    if (!timeStr || typeof timeStr !== 'string') return '';
+    if (!timeStr.includes(':')) return timeStr;
+    try {
+      const [h, m] = timeStr.split(':');
+      let hours = parseInt(h);
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12;
+      hours = hours ? hours : 12; 
+      return `${hours}:${m} ${ampm}`;
+    } catch (e) {
+      return timeStr;
+    }
   };
 
   return (
@@ -191,8 +196,7 @@ export default function AttendanceManagement({ ownerView = false }) {
 
        if (logView === 'category') {
            if (reportCategory === 'OPD') results = results.filter(r => r.category === 'doctor' && r.docType === 'OPD');
-                       if (reportCategory === 'Channelling') results = results.filter(r => r.category === 'doctor' && r.docType === 'Channelling');
-
+           if (reportCategory === 'Channeling') results = results.filter(r => r.category === 'doctor' && r.docType === 'Channeling');
            if (reportCategory === 'staff') results = results.filter(r => r.category === 'staff');
        }
 
@@ -253,7 +257,9 @@ export default function AttendanceManagement({ ownerView = false }) {
         const q = query(collection(db, 'attendance'), where('status', '==', 'Present'));
         const snap = await getDocs(q);
         
-        snap.forEach(async (d) => {
+        let autoMarkedNames = [];
+        
+        const promises = snap.docs.map(async (d) => {
           const data = d.data();
           if (data.date !== today) {
              // Auto mark out missed entry from previous days
@@ -261,8 +267,16 @@ export default function AttendanceManagement({ ownerView = false }) {
                outTime: '23:59',
                status: 'Auto Marked Out'
              });
+             if (data.category === 'doctor') {
+               autoMarkedNames.push(data.name || 'A Doctor');
+             }
           }
         });
+        await Promise.all(promises);
+
+        if (autoMarkedNames.length > 0) {
+          toast(`System Auto-Message: The following doctors forgot to mark out previously and were auto-marked out: ${autoMarkedNames.join(', ')}`, { icon: '⚠️', duration: 10000 });
+        }
       } catch(err) {
         console.error('Cleanup error', err);
       }
@@ -328,13 +342,18 @@ export default function AttendanceManagement({ ownerView = false }) {
   };
 
   const formatAMPM = (timeStr) => {
-    if(!timeStr) return '-';
-    const [h, m] = timeStr.split(':');
-    let hours = parseInt(h);
-    const ampm = hours >= 12 ? 'PM' : 'AM';
-    hours = hours % 12;
-    hours = hours ? hours : 12; 
-    return `${hours}:${m} ${ampm}`;
+    if (!timeStr || typeof timeStr !== 'string') return '-';
+    if (!timeStr.includes(':')) return timeStr;
+    try {
+      const [h, m] = timeStr.split(':');
+      let hours = parseInt(h);
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12;
+      hours = hours ? hours : 12; 
+      return `${hours}:${m} ${ampm}`;
+    } catch (e) {
+      return timeStr;
+    }
   };
 
   const renderList = (list) => (
@@ -353,19 +372,25 @@ export default function AttendanceManagement({ ownerView = false }) {
   );
 
   const calculateStayTime = (inTime, outTime) => {
-    if (!inTime || !outTime) return '-';
-    const [inH, inM] = inTime.split(':').map(Number);
-    const [outH, outM] = outTime.split(':').map(Number);
-    const inTotal = inH * 60 + inM;
-    const outTotal = outH * 60 + outM;
-    if (outTotal < inTotal) return '-'; 
-    const diff = outTotal - inTotal;
-    const hours = Math.floor(diff / 60);
-    const minutes = diff % 60;
-    if (hours === 0 && minutes === 0) return `0m`;
-    if (hours === 0) return `${minutes}m`;
-    if (minutes === 0) return `${hours}h`;
-    return `${hours}h ${minutes}m`;
+    if (!inTime || !outTime || typeof inTime !== 'string' || typeof outTime !== 'string') return '-';
+    if (!inTime.includes(':') || !outTime.includes(':')) return '-';
+    try {
+      const [inH, inM] = inTime.split(':').map(Number);
+      const [outH, outM] = outTime.split(':').map(Number);
+      if (isNaN(inH) || isNaN(inM) || isNaN(outH) || isNaN(outM)) return '-';
+      const inTotal = inH * 60 + inM;
+      const outTotal = outH * 60 + outM;
+      if (outTotal < inTotal) return '-'; 
+      const diff = outTotal - inTotal;
+      const hours = Math.floor(diff / 60);
+      const minutes = diff % 60;
+      if (hours === 0 && minutes === 0) return `0m`;
+      if (hours === 0) return `${minutes}m`;
+      if (minutes === 0) return `${hours}h`;
+      return `${hours}h ${minutes}m`;
+    } catch (e) {
+      return '-';
+    }
   };
 
   const renderLogsTable = (logsList, title) => {
@@ -479,7 +504,7 @@ export default function AttendanceManagement({ ownerView = false }) {
                     <label style={{fontWeight:'700', color:'#475569'}}>Category Filter</label>
                     <select value={reportCategory} onChange={e=>setReportCategory(e.target.value)} style={{padding:'12px', borderRadius:'12px', border:'2px solid #e2e8f0', outline:'none', fontFamily:'inherit', background:'white'}}>
                        <option value="OPD">OPD Doctors</option>
-                       <option value="Channelling">Channelling Doctors</option>
+                       <option value="Channeling">Channeling Doctors</option>
                        <option value="staff">Nurses & Staff</option>
                     </select>
                   </div>
@@ -493,8 +518,8 @@ export default function AttendanceManagement({ ownerView = false }) {
                        <optgroup label="OPD Doctors">
                           {doctors.filter(d=>d.docType==='OPD').map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
                        </optgroup>
-                       <optgroup label="Channelling Doctors">
-                          {doctors.filter(d=>d.docType==='Channelling').map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                       <optgroup label="Channeling Doctors">
+                          {doctors.filter(d=>d.docType==='Channeling').map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
                        </optgroup>
                        <optgroup label="Nurses & Staff">
                           {staff.map(d => <option key={d.id} value={d.id}>{d.name} ({d.role})</option>)}
@@ -521,7 +546,7 @@ export default function AttendanceManagement({ ownerView = false }) {
           todayLogs.length === 0 ? <p style={{color:'#64748b'}}>No records saved for today.</p> : (
             <div className="fade-in" style={{display:'flex', flexDirection:'column', gap:'1rem'}}>
                {renderLogsTable(todayLogs.filter(l => l.category === 'doctor' && l.docType === 'OPD'), "OPD Doctors")}
-               {renderLogsTable(todayLogs.filter(l => l.category === 'doctor' && l.docType === 'Channelling'), "Channelling Doctors")}
+               {renderLogsTable(todayLogs.filter(l => l.category === 'doctor' && l.docType === 'Channeling'), "Channeling Doctors")}
                {renderLogsTable(todayLogs.filter(l => l.category === 'staff'), "Nurses & Staff")}
             </div>
           )
@@ -537,7 +562,7 @@ export default function AttendanceManagement({ ownerView = false }) {
                  </button>
                </div>
                {renderLogsTable(reportLogs.filter(l => l.category === 'doctor' && l.docType === 'OPD'), "OPD Doctors")}
-               {renderLogsTable(reportLogs.filter(l => l.category === 'doctor' && l.docType === 'Channelling'), "Channelling Doctors")}
+               {renderLogsTable(reportLogs.filter(l => l.category === 'doctor' && l.docType === 'Channeling'), "Channeling Doctors")}
                {renderLogsTable(reportLogs.filter(l => l.category === 'staff'), "Nurses & Staff")}
              </div>
           ) : (
@@ -604,7 +629,7 @@ export default function AttendanceManagement({ ownerView = false }) {
   });
 
   const opdDoctors = doctors.filter(d => d.docType === 'OPD');
-  const channellingDoctors = doctors.filter(d => d.docType === 'Channelling');
+  const channelingDoctors = doctors.filter(d => d.docType === 'Channeling');
 
   return (
     <div className="registration-panel fade-in">
@@ -653,7 +678,7 @@ export default function AttendanceManagement({ ownerView = false }) {
                  </div>
                  <div>
                    <h3 style={{color:'#0f172a', marginBottom:'1.5rem', fontSize:'1.2rem', borderBottom:'1px solid #e2e8f0', paddingBottom:'10px'}}>
-                     Channelling Doctors
+                     Channeling Doctors
                    </h3>
                    {renderList(channelingDoctors)}
                  </div>

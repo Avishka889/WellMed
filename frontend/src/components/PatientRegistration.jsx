@@ -60,9 +60,9 @@ export default function PatientRegistration({ onStepChange }) {
   };
 
   // === STEP 2 STATES (Services) ===
-  const [serviceType, setServiceType] = useState(''); // 'OPD' or 'Channelling'
+  const [serviceType, setServiceType] = useState(''); // 'OPD' or 'Channeling'
   const [selectedDoctor, setSelectedDoctor] = useState('');
-  const [prices, setPrices] = useState({ opd: 1000 });
+  const [prices, setPrices] = useState({ opd_morning_fee: 1000, opd_evening_fee: 1500 });
   const [activePrice, setActivePrice] = useState(0);
   const [availableDoctors, setAvailableDoctors] = useState([]);
   const [attendance, setAttendance] = useState({}); // Today's status (In/Out)
@@ -77,7 +77,8 @@ export default function PatientRegistration({ onStepChange }) {
         const priceSnap = await getDoc(doc(db, 'settings', 'pricing'));
         if (priceSnap.exists()) {
           setPrices({
-            opd: priceSnap.data().opd_fee || 1000
+            opd_morning_fee: priceSnap.data().opd_morning_fee || priceSnap.data().opd_fee || 1000,
+            opd_evening_fee: priceSnap.data().opd_evening_fee || priceSnap.data().opd_fee || 1500
           });
         }
         
@@ -161,7 +162,6 @@ export default function PatientRegistration({ onStepChange }) {
         });
         setPatientsList(patients);
         setSearchStatus('found');
-        toast.success(`Found ${patients.length} patient(s) for this number!`);
       }
     } catch (error) {
       console.error(error);
@@ -172,8 +172,16 @@ export default function PatientRegistration({ onStepChange }) {
 
   const handleRegisterNew = async (e) => {
     e.preventDefault();
-    const loadingId = toast.loading('Registering new patient...');
     try {
+      // Validation: Same phone, Same name check
+      const q = query(collection(db, 'patients'), where('contactNo', '==', contactNo), where('name', '==', name.trim()));
+      const snap = await getDocs(q);
+      if (!snap.empty) {
+        toast.error('A patient with this name is already registered under this number.');
+        return;
+      }
+
+      const loadingId = toast.loading('Registering patient...');
       const patientData = { 
         contactNo: contactNo.trim(), 
         name: name.trim(), 
@@ -249,13 +257,19 @@ export default function PatientRegistration({ onStepChange }) {
         }
         
         toast.success("OPD Doctor available.", { id: loadingId });
-        setActivePrice(prices.opd);
+        
+        const currentHour = new Date().getHours();
+        if (currentHour < 12) {
+          setActivePrice(prices.opd_morning_fee);
+        } else {
+          setActivePrice(prices.opd_evening_fee);
+        }
       } catch (err) {
         toast.error("Failed to verify availability.", { id: loadingId });
         return;
       }
     } else {
-      setActivePrice(0); // For Channelling, reset price until doctor is selected
+      setActivePrice(0); // For Channeling, reset price until doctor is selected
     }
     
     setServiceType(type);
@@ -266,7 +280,7 @@ export default function PatientRegistration({ onStepChange }) {
     const docName = e.target.value;
     setSelectedDoctor(docName);
     
-    if (serviceType === 'Channelling') {
+    if (serviceType === 'Channeling') {
       const docObj = availableDoctors.find(d => d.name === docName);
       if (docObj) {
         const total = Number(docObj.doctorCharge || 0) + Number(docObj.hospitalCharge || 0);
@@ -356,7 +370,7 @@ export default function PatientRegistration({ onStepChange }) {
       const dailyNumber = await generateAppointmentNumber(serviceType);
       const formattedApptNo = `${serviceType === 'OPD' ? 'OPD' : 'CH'}-${dailyNumber}`;
       
-      const docObj = (serviceType === 'Channelling' && selectedDoctor) 
+      const docObj = (serviceType === 'Channeling' && selectedDoctor) 
         ? availableDoctors.find(d => d.name === selectedDoctor) 
         : null;
 
@@ -549,8 +563,8 @@ export default function PatientRegistration({ onStepChange }) {
               <h3>OPD</h3>
               <p>General Consultation</p>
             </div>
-            <div className={`service-card ${serviceType==='Channelling'?'active':''}`} style={{padding:'0.8rem 1rem'}} onClick={()=>selectService('Channelling')}>
-              <h3>Channelling</h3>
+            <div className={`service-card ${serviceType==='Channeling'?'active':''}`} style={{padding:'0.8rem 1rem'}} onClick={()=>selectService('Channeling')}>
+              <h3>Channeling</h3>
               <p>Specialist Doctor</p>
             </div>
           </div>
@@ -607,7 +621,7 @@ export default function PatientRegistration({ onStepChange }) {
             background:'#f8fafc', color:'#0f172a', padding:'0.8rem 1.2rem', borderRadius:'10px',
             border:'1.5px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
           }}>
-            <h3 style={{margin:0, fontSize:'0.85rem', color:'#64748b', textTransform:'uppercase', letterSpacing:'0.8px'}}>{serviceType} {serviceType==='Channelling' ? `(${selectedDoctor})` : ''}</h3>
+            <h3 style={{margin:0, fontSize:'0.85rem', color:'#64748b', textTransform:'uppercase', letterSpacing:'0.8px'}}>{serviceType} {serviceType==='Channeling' ? `(${selectedDoctor})` : ''}</h3>
             <h1 style={{margin:0, fontSize:'1.4rem', color:'#0f172a'}}>LKR {activePrice}.00</h1>
           </div>
           
@@ -645,94 +659,55 @@ export default function PatientRegistration({ onStepChange }) {
             <button className="cancel-btn" onClick={resetAll}>Done / Next Patient</button>
           </div>
 
-          <div className="receipt-paper pos-receipt" style={{maxWidth:'320px', margin: '0 auto', background:'white', padding:'25px', color:'black', fontFamily: "'Segoe UI', Roboto, Helvetica, Arial, sans-serif"}}>
-            <style>{`
-              @media print {
-                @page { margin: 0; }
-                body { margin: 0; padding: 20px; }
-                .no-print { display: none !important; }
-                .receipt-paper { box-shadow: none !important; border: none !important; width: 100% !important; margin: 0 !important; }
-              }
-              .pos-divider { border-top: 1.5px dashed #000; margin: 15px 0; }
-              .pos-header { text-align: center; margin-bottom: 20px; }
-              .pos-logo { width: 60px; height: auto; margin-bottom: 8px; filter: grayscale(1); }
-              .pos-hospital { font-size: 1.6rem; font-weight: 900; margin: 0; letter-spacing: -0.5px; }
-              .pos-tagline { font-size: 0.8rem; font-weight: 600; color: #333; margin: 2px 0 0 0; }
-              .pos-token-box { text-align: center; background: #000; color: #fff; padding: 12px; border-radius: 8px; margin: 15px 0; }
-              .pos-token-label { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 4px; opacity: 0.9; }
-              .pos-token-val { font-size: 1.8rem; font-weight: 900; display: block; }
-              .pos-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9rem; }
-              .pos-label { font-weight: 700; color: #000; }
-              .pos-val { font-weight: 500; color: #000; text-align: right; }
-              .pos-footer { text-align: center; margin-top: 25px; font-size: 0.8rem; }
-              .pos-footer p { margin: 4px 0; font-weight: 600; }
-            `}</style>
-
-            <div className="pos-header">
-              <img src="/logo.png" alt="Logo" className="pos-logo" />
-              <h2 className="pos-hospital">WellMed</h2>
-              <p className="pos-tagline">Specialist Medical & Diabetic Care</p>
+          <div className="receipt-paper">
+            <div className="receipt-header">
+              <img src="/logo.png" alt="Logo" className="receipt-logo" />
+              <h2>WellMed</h2>
+              <p>Specialist Medical & Diabetic Care</p>
+              <div className="divider"></div>
             </div>
 
-            <div className="pos-divider"></div>
-
-            <div className="pos-token-box">
-              <span className="pos-token-label">{visitRecord.serviceType} TOKEN</span>
-              <span className="pos-token-val">{visitRecord.appointmentNo}</span>
+            <div className="receipt-row title-row">
+              <h2>{visitRecord.serviceType} TOKEN</h2>
+              <h1 className="appt-no">{visitRecord.appointmentNo}</h1>
             </div>
 
-            <div className="pos-row" style={{marginTop:'20px'}}>
-              <span className="pos-label">Date:</span>
-              <span className="pos-val">{visitRecord.date} | {visitRecord.time}</span>
+            <div className="divider"></div>
+
+            <div className="receipt-details">
+              <p><b>Date:</b> {visitRecord.date}</p>
+              <p><b>Time:</b> {visitRecord.time}</p>
+              <p><b>Patient Name:</b> {visitRecord.patientName}</p>
+              <p><b>Contact No:</b> {visitRecord.contactNo}</p>
+              <p style={{display:'flex', gap:'8px', flexWrap:'nowrap'}}>
+                <span><b>Age:</b> {visitRecord.age} Yrs</span>
+                <span>|</span>
+                <span><b>Gender:</b> {visitRecord.gender}</span>
+              </p>
+              <p style={{display:'flex', gap:'8px', flexWrap:'nowrap'}}>
+                <span><b>Height:</b> {visitRecord.height}cm</span>
+                <span>|</span>
+                <span><b>Weight:</b> {visitRecord.weight}kg</span>
+              </p>
+              {visitRecord.weight && visitRecord.height && (
+                <p><b>BMI:</b> {getBMIDetails(visitRecord.weight, visitRecord.height)?.bmi} ({getBMIDetails(visitRecord.weight, visitRecord.height)?.status})</p>
+              )}
+
+              {visitRecord.serviceType === 'Channeling' && (
+                <div className="doctor-box">
+                  <b>Doctor:</b> {visitRecord.doctor} {visitRecord.specialization ? `(${visitRecord.specialization})` : ''}
+                </div>
+              )}
             </div>
 
-            <div className="pos-divider"></div>
+            <div className="divider"></div>
 
-            <div className="pos-row">
-              <span className="pos-label">Patient:</span>
-              <span className="pos-val" style={{fontWeight:900}}>{visitRecord.patientName}</span>
-            </div>
-            <div className="pos-row">
-              <span className="pos-label">Contact:</span>
-              <span className="pos-val">{visitRecord.contactNo}</span>
-            </div>
-            <div className="pos-row">
-              <span className="pos-label">Details:</span>
-              <span className="pos-val">{visitRecord.age} Yrs | {visitRecord.gender}</span>
-            </div>
-            <div className="pos-row">
-              <span className="pos-label">Vitals:</span>
-              <span className="pos-val">{visitRecord.height}cm | {visitRecord.weight}kg</span>
-            </div>
-            {visitRecord.weight && visitRecord.height && (
-              <div className="pos-row">
-                <span className="pos-label">BMI:</span>
-                <span className="pos-val">{getBMIDetails(visitRecord.weight, visitRecord.height)?.bmi} ({getBMIDetails(visitRecord.weight, visitRecord.height)?.status})</span>
-              </div>
-            )}
-            
-            <div className="pos-divider"></div>
-
-            {visitRecord.serviceType === 'Channelling' && (
-              <div className="pos-row">
-                <span className="pos-label">Doctor:</span>
-                <span className="pos-val" style={{fontWeight:700}}>{visitRecord.doctor}</span>
-              </div>
-            )}
-
-            <div className="pos-row" style={{marginTop:'15px', borderTop:'2px solid #000', paddingTop:'10px'}}>
-              <span className="pos-label" style={{fontSize:'1.1rem'}}>TOTAL (LKR):</span>
-              <span className="pos-val" style={{fontSize:'1.2rem', fontWeight:900}}>Rs. {visitRecord.amount}.00</span>
-            </div>
-            <div className="pos-row" style={{fontSize:'0.75rem', opacity:0.8}}>
-              <span className="pos-label">Payment:</span>
-              <span className="pos-val">{visitRecord.paymentMethod}</span>
-            </div>
-
-            <div className="pos-footer">
+            <div className="receipt-footer">
+              <p className="fee-line"><b>Service Fee:</b> LKR {visitRecord.amount}.00</p>
+              <p><b>Paid Method:</b> {visitRecord.paymentMethod}</p>
+              <br/>
               <p>Wishing you a fast recovery!</p>
-              <p style={{fontSize:'0.7rem', opacity:0.6}}>wellmed.medi@gmail.com</p>
-              <div style={{marginTop:'15px', fontSize:'0.65rem'}}>*** Printed via WellMed POS System ***</div>
+              <p className="small-text">wellmed.medi@gmail.com</p>
             </div>
           </div>
         </>
