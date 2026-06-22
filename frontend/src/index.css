@@ -318,7 +318,7 @@ body:has(.dashboard-layout) { background-image: none; background-color: #ffffff;
     margin: 0 !important;
     padding: 0 !important;
     background: white !important;
-    width: 80mm !important;
+    width: 100% !important;
     overflow: visible !important;
     height: auto !important;
   }
@@ -365,8 +365,8 @@ body:has(.dashboard-layout) { background-image: none; background-color: #ffffff;
   .registration-panel {
     box-shadow: none !important;
     padding: 0 !important;
-    max-width: 80mm !important;
-    width: 80mm !important;
+    max-width: 100% !important;
+    width: 100% !important;
     margin: 0 !important;
     background: transparent !important;
     border: none !important;
@@ -377,52 +377,50 @@ body:has(.dashboard-layout) { background-image: none; background-color: #ffffff;
   .receipt-paper {
     border: none !important;
     box-shadow: none !important;
-    width: 76mm !important;
-    max-width: 76mm !important;
+    width: 96% !important;
+    max-width: 96% !important;
     margin: 0 auto !important;
-    padding: 1mm 0 !important;
-    font-size: 10.5pt !important;
+    padding: 0 2mm !important;
+    font-size: 8.5pt !important;
     font-family: 'Poppins', 'Segoe UI', sans-serif !important;
     color: black !important;
     overflow: visible !important;
     page-break-inside: avoid !important;
     break-inside: avoid !important;
-    line-height: 1.2 !important;
+    line-height: 1.1 !important;
   }
 
   .receipt-header {
-    margin-bottom: 5px !important;
+    margin-bottom: 3px !important;
     text-align: center !important;
   }
-  .receipt-logo { width: 45px !important; margin-bottom: 5px !important; }
-  .receipt-header h2 { font-size: 15pt !important; margin: 0 0 2px 0 !important; font-weight: 800 !important; }
-  .receipt-header p { font-size: 10pt !important; margin: 2px 0 !important; font-weight: 600 !important; }
+  .receipt-logo { width: 35px !important; margin-bottom: 3px !important; }
+  .receipt-header h2 { font-size: 12pt !important; margin: 0 0 1px 0 !important; font-weight: 800 !important; }
+  .receipt-header p { font-size: 8.5pt !important; margin: 1px 0 !important; font-weight: 600 !important; }
 
-  .divider, .receipt-divider { margin: 6px 0 !important; border-top: 2px dashed #000 !important; border-style: dashed !important; }
+  .divider, .receipt-divider { margin: 6px 0 !important; border-top: 1px dashed #000 !important; border-style: dashed !important; }
 
-  .title-row { text-align: center !important; margin: 8px 0 !important; }
-  .title-row h2 { font-size: 11pt !important; margin: 4px 0 !important; letter-spacing: 1px !important; font-weight: 700 !important; }
+  .title-row { text-align: center !important; margin: 5px 0 !important; }
+  .title-row h2 { font-size: 9.5pt !important; margin: 2px 0 !important; letter-spacing: 0.5px !important; font-weight: 700 !important; }
   .appt-no {
-    font-size: 22pt !important;
-    margin: 4px 0 !important;
-    padding: 2px 12px !important;
-    border: 2px solid black !important;
-    border-radius: 6px !important;
+    font-size: 18pt !important;
+    margin: 2px 0 !important;
+    padding: 1px 10px !important;
+    border: 1.5px solid black !important;
+    border-radius: 4px !important;
     display: inline-block !important;
-    font-weight: 950 !important;
+    font-weight: 900 !important;
   }
 
   .receipt-details p, .info-item, .service-row {
-    font-size: 10pt !important;
-    margin: 3px 0 !important;
-    line-height: 1.4 !important;
+    font-size: 8.5pt !important;
+    margin: 2px 0 !important;
+    line-height: 1.2 !important;
     word-wrap: break-word !important;
     overflow-wrap: break-word !important;
-    white-space: nowrap !important; /* Ensure they stay on one line */
+    white-space: normal !important; 
     max-width: 100% !important;
-    font-weight: 600 !important; /* Make everything bolder for thermal legibility */
-    overflow: hidden;
-    text-overflow: ellipsis;
+    font-weight: 600 !important; 
   }
 
   .receipt-details b, .info-item .label, .service-row span:first-child {

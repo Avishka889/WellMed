@@ -172,6 +172,7 @@ export default function PatientRegistration({ onStepChange }) {
 
   const handleRegisterNew = async (e) => {
     e.preventDefault();
+    let loadingId = null;
     try {
       // Validation: Same phone, Same name check
       const q = query(collection(db, 'patients'), where('contactNo', '==', contactNo), where('name', '==', name.trim()));
@@ -181,7 +182,7 @@ export default function PatientRegistration({ onStepChange }) {
         return;
       }
 
-      const loadingId = toast.loading('Registering patient...');
+      loadingId = toast.loading('Registering patient...');
       const patientData = { 
         contactNo: contactNo.trim(), 
         name: name.trim(), 
@@ -200,7 +201,8 @@ export default function PatientRegistration({ onStepChange }) {
       setSelectedPatient({ id: docRef.id, ...patientData });
       setStep(2);
     } catch (error) {
-      toast.error('Failed to register.', { id: loadingId });
+      console.error("Registration Error:", error);
+      toast.error('Failed to register. Please check your connection.', { id: loadingId });
     }
   };
 
@@ -230,8 +232,9 @@ export default function PatientRegistration({ onStepChange }) {
   const selectService = async (type) => {
     const today = new Date().toLocaleDateString('en-CA');
     
+    let loadingId = null;
     if (type === 'OPD') {
-      const loadingId = toast.loading("Checking OPD availability...");
+      loadingId = toast.loading("Checking OPD availability...");
       try {
         // Force fresh attendance fetch on selection
         const qAtt = query(collection(db, 'attendance'), where('date', '==', today));
@@ -368,7 +371,7 @@ export default function PatientRegistration({ onStepChange }) {
     
     try {
       const dailyNumber = await generateAppointmentNumber(serviceType);
-      const formattedApptNo = `${serviceType === 'OPD' ? 'OPD' : 'CH'}-${dailyNumber}`;
+      const formattedApptNo = `${serviceType === 'OPD' ? 'O' : (serviceType === 'Channeling' ? 'C' : 'P')}-No ${dailyNumber}`;
       
       const docObj = (serviceType === 'Channeling' && selectedDoctor) 
         ? availableDoctors.find(d => d.name === selectedDoctor) 
@@ -668,8 +671,7 @@ export default function PatientRegistration({ onStepChange }) {
             </div>
 
             <div className="receipt-row title-row">
-              <h2>{visitRecord.serviceType} TOKEN</h2>
-              <h1 className="appt-no">{visitRecord.appointmentNo}</h1>
+              {/* Removed redundant TOKEN header */}
             </div>
 
             <div className="divider"></div>
@@ -705,6 +707,7 @@ export default function PatientRegistration({ onStepChange }) {
             <div className="receipt-footer">
               <p className="fee-line"><b>Service Fee:</b> LKR {visitRecord.amount}.00</p>
               <p><b>Paid Method:</b> {visitRecord.paymentMethod}</p>
+              <p style={{marginTop:'10px', fontSize:'11pt', fontWeight:'900'}}>{visitRecord.appointmentNo}</p>
               <br/>
               <p>Wishing you a fast recovery!</p>
               <p className="small-text">wellmed.medi@gmail.com</p>

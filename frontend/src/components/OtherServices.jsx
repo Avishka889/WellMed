@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { db } from '../firebase';
-import { collection, query, where, getDocs, addDoc, doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, serverTimestamp, doc, runTransaction } from 'firebase/firestore';
 import toast from 'react-hot-toast';
+
+const EXEMPT_SERVICES = ['Wound Dressing', 'Nebulization', 'Nebulize', 'Wound Care', 'Dressing'];
 
 export default function OtherServices() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -27,6 +29,8 @@ export default function OtherServices() {
   const [activeDoctor, setActiveDoctor] = useState(null);
   const [activeNurse, setActiveNurse] = useState(null);
   const [staffError, setStaffError] = useState('');
+
+  const isExempt = (name) => EXEMPT_SERVICES.some(ex => name.toLowerCase().includes(ex.toLowerCase()));
 
   useEffect(() => {
     const fetchProcs = async () => {
@@ -71,25 +75,25 @@ export default function OtherServices() {
     const opdDocs = activeStaff.filter(d => d.category === 'doctor' && d.docType === 'OPD');
     const nurses = activeStaff.filter(d => d.category === 'staff' && d.role === 'Nurse');
     
-    let errs = [];
-    if (opdDocs.length > 1) errs.push('Multiple OPD Doctors are currently active');
-    if (opdDocs.length === 0) errs.push('No Active OPD Doctor (check attendance)');
-    if (nurses.length > 1) errs.push('Multiple Nurses are currently active');
-    if (nurses.length === 0) errs.push('No Active Nurse (check attendance)');
-
     if (opdDocs.length === 1) setActiveDoctor(opdDocs[0]);
     else setActiveDoctor(null);
 
     if (nurses.length === 1) setActiveNurse(nurses[0]);
     else setActiveNurse(null);
 
-    if (errs.length > 0) {
+    const errs = [];
+    if (opdDocs.length > 1) errs.push('Multiple active OPD doctors found');
+    if (nurses.length > 1) errs.push('Multiple active nurses found');
+    if (nurses.length === 0) errs.push('No active nurse found');
+
+    // Only set staffError if it's a structural issue (multiple staff) or absolute lack of nurse
+    if (opdDocs.length > 1 || nurses.length > 1 || nurses.length === 0) {
       setStaffError(errs.join(' | '));
       return { success: false, error: errs.join(' | ') };
-    } else {
-      setStaffError('');
-      return { success: true };
     }
+    
+    setStaffError('');
+    return { success: true };
   };
 
   useEffect(() => {
@@ -224,13 +228,41 @@ export default function OtherServices() {
     }, 0);
   };
 
+  const generateProcedureNumber = async () => {
+    const today = new Date().toISOString().split('T')[0];
+    const counterRef = doc(db, 'daily_counters', today);
+    let newNumber = 1;
+    
+    try {
+      await runTransaction(db, async (transaction) => {
+        const counterDoc = await transaction.get(counterRef);
+        if (!counterDoc.exists()) {
+          transaction.set(counterRef, { opdCount: 0, channelingCount: 0, procedureCount: 1 });
+        } else {
+          const data = counterDoc.data();
+          newNumber = (data.procedureCount || 0) + 1;
+          transaction.update(counterRef, { procedureCount: newNumber });
+        }
+      });
+      return newNumber;
+    } catch (e) {
+      console.error("Counter Error", e);
+      return Math.floor(Math.random() * 1000);
+    }
+  };
+
+  const [visitRecord, setVisitRecord] = useState(null);
+
   const handleProcessPayment = async () => {
     if (selectedServices.length === 0) return toast.error("Select at least one service.");
-    
+
+    const doctorRequired = selectedServices.some(s => !isExempt(s.name));
+
     const verification = await verifyStaffAvailability();
     if (!verification.success) return toast.error("Process aborted: " + verification.error);
     
-    if (!activeDoctor || !activeNurse) return toast.error("Active Doctor/Nurse missing!");
+    if (!activeNurse) return toast.error("Active Nurse missing!");
+    if (doctorRequired && !activeDoctor) return toast.error("No active OPD Doctor for the selected procedures.");
     
     // Check if any variable service has no price
     const missingPrice = selectedServices.find(s => s.type === 'Variable' && (!procedurePrices[s.id] || !procedurePrices[s.id].base));
@@ -238,6 +270,9 @@ export default function OtherServices() {
 
     const loadingId = toast.loading("Processing clinical service record...");
     try {
+      const dailyNumber = await generateProcedureNumber();
+      const formattedApptNo = `P-No ${dailyNumber}`;
+      
       const finalServices = selectedServices.map(s => {
         let p = 0; let dCut = 0; let nCut = 0; let baseAmt = 0;
         if (s.type === 'Fixed') {
@@ -273,15 +308,17 @@ export default function OtherServices() {
         paymentMethod: paymentMethod,
         timestamp: serverTimestamp(),
         type: 'additional_service',
-        activeDoctorId: activeDoctor.memberId || activeDoctor.id || null,
-        activeDoctorName: activeDoctor.name,
+        activeDoctorId: activeDoctor ? (activeDoctor.memberId || activeDoctor.id) : 'N/A',
+        activeDoctorName: activeDoctor ? activeDoctor.name : 'N/A',
         doctorEarnings: totalDocCut,
         activeNurseId: activeNurse.memberId || activeNurse.id || null,
         activeNurseName: activeNurse.name,
-        nurseEarnings: totalNurseCut
+        nurseEarnings: totalNurseCut,
+        appointmentNo: formattedApptNo
       };
       
       await addDoc(collection(db, 'additional_visit_services'), serviceRecord);
+      setVisitRecord(serviceRecord);
       
       toast.success("Payment recorded successfully!", { id: loadingId });
       setIsReceiptGenerated(true);
@@ -356,13 +393,14 @@ export default function OtherServices() {
 
           <div className="receipt-divider" style={{borderStyle:'solid', marginTop:'15px'}}></div>
 
-          <div className="total-section" style={{display:'flex', justifyContent:'space-between', padding:'10px 0', fontSize:'1.2rem'}}>
+          <div className="total-section" style={{display:'flex', justifyContent:'space-between', padding:'8px 0', fontSize:'1rem'}}>
             <span style={{fontWeight:'800'}}>TOTAL AMOUNT (LKR):</span>
-            <span style={{fontWeight:'800', borderBottom:'3px double #000'}}>Rs. {calculateTotal().toFixed(2)}</span>
+            <span style={{fontWeight:'800', borderBottom:'2px double #000'}}>Rs. {calculateTotal().toFixed(2)}</span>
           </div>
 
           <div className="receipt-footer">
-             <p style={{margin:'20px 0 0 0', fontWeight:'700'}}>*** CLINICAL SERVICE RECEIPT ***</p>
+             <p style={{margin:'15px 0', fontSize:'11pt', fontWeight:'800'}}>{visitRecord?.appointmentNo}</p>
+             <p style={{margin:'0', fontWeight:'700'}}>*** CLINICAL SERVICE RECEIPT ***</p>
           </div>
         </div>
       </div>
@@ -564,22 +602,24 @@ export default function OtherServices() {
                                 }}
                               />
                             </div>
-                            <div style={{flex:1, minWidth:'140px'}}>
-                              <label style={{fontSize:'0.78rem', color:'#64748b', fontWeight:'600', display:'block', marginBottom:'5px'}}>
-                                Doctor's Charge (LKR)
-                              </label>
-                              <input
-                                type="number"
-                                placeholder="e.g. 500"
-                                value={prices.doc || ''}
-                                onChange={e => handleManualPriceChange(service.id, 'doc', e.target.value)}
-                                style={{
-                                  width:'100%', padding:'8px 12px', borderRadius:'8px',
-                                  border:'1.5px solid #cbd5e1', outline:'none',
-                                  fontFamily:'inherit', fontSize:'0.95rem', boxSizing:'border-box'
-                                }}
-                              />
-                            </div>
+                            {(!isExempt(service.name) || activeDoctor) && (
+                              <div style={{flex:1, minWidth:'140px'}}>
+                                <label style={{fontSize:'0.78rem', color:'#64748b', fontWeight:'600', display:'block', marginBottom:'5px'}}>
+                                  Doctor's Charge (LKR)
+                                </label>
+                                <input
+                                  type="number"
+                                  placeholder="e.g. 500"
+                                  value={prices.doc || ''}
+                                  onChange={e => handleManualPriceChange(service.id, 'doc', e.target.value)}
+                                  style={{
+                                    width:'100%', padding:'8px 12px', borderRadius:'8px',
+                                    border:'1.5px solid #cbd5e1', outline:'none',
+                                    fontFamily:'inherit', fontSize:'0.95rem', boxSizing:'border-box'
+                                  }}
+                                />
+                              </div>
+                            )}
                             {(baseAmt > 0 || docAmt > 0) && (
                               <div style={{display:'flex', alignItems:'flex-end', paddingBottom:'2px'}}>
                                 <div style={{
@@ -637,20 +677,32 @@ export default function OtherServices() {
            {/* ── Staff Info + Total + Confirm ── */}
            {selectedServices.length > 0 && (
              <div className="fade-in" style={{display:'flex', flexDirection:'column', gap:'1rem'}}>
-               {staffError ? (
-                 <div style={{color:'white', background:'#dc2626', padding:'1rem 1.2rem', borderRadius:'10px', fontWeight:'700', fontSize:'0.9rem'}}>
-                   ⚠️ {staffError} — Ensure ONE OPD Doctor and ONE Nurse are marked Present.
-                 </div>
-               ) : (
-                 <div style={{background:'#f0f9ff', padding:'1rem 1.2rem', borderRadius:'10px', border:'1px solid #bae6fd', display:'flex', gap:'2rem', flexWrap:'wrap'}}>
-                   <div style={{fontSize:'0.9rem', color:'#0369a1'}}>
-                     <span style={{fontWeight:'600'}}>Active Doctor:</span> {activeDoctor?.name}
+               {(() => {
+                 const isExempt = (name) => EXEMPT_SERVICES.some(ex => name.toLowerCase().includes(ex.toLowerCase()));
+                 const doctorRequired = selectedServices.some(s => !isExempt(s.name));
+                 const missingDoc = doctorRequired && !activeDoctor;
+                 const missingNurse = !activeNurse;
+                 
+                 if (staffError || missingDoc || missingNurse) {
+                   return (
+                     <div style={{color:'white', background:'#dc2626', padding:'1rem 1.2rem', borderRadius:'10px', fontWeight:'700', fontSize:'0.9rem'}}>
+                       ⚠️ {staffError || (missingDoc ? 'OPD Doctor is REQUIRED for these procedures.' : 'No Active Nurse found.')} 
+                       — Ensure appropriate staff are marked Present.
+                     </div>
+                   );
+                 }
+
+                 return (
+                   <div style={{background:'#f0f9ff', padding:'1rem 1.2rem', borderRadius:'10px', border:'1px solid #bae6fd', display:'flex', gap:'2rem', flexWrap:'wrap'}}>
+                     <div style={{fontSize:'0.9rem', color:'#0369a1'}}>
+                       <span style={{fontWeight:'600'}}>Active Doctor:</span> {activeDoctor?.name || 'NONE (Only for Exempt Services)'}
+                     </div>
+                     <div style={{fontSize:'0.9rem', color:'#16a34a'}}>
+                       <span style={{fontWeight:'600'}}>Active Nurse:</span> {activeNurse?.name}
+                     </div>
                    </div>
-                   <div style={{fontSize:'0.9rem', color:'#16a34a'}}>
-                     <span style={{fontWeight:'600'}}>Active Nurse:</span> {activeNurse?.name}
-                   </div>
-                 </div>
-               )}
+                 );
+               })()}
 
                <div style={{
                  display:'flex', justifyContent:'space-between', alignItems:'center',
@@ -677,13 +729,21 @@ export default function OtherServices() {
                </div>
 
                <div style={{ display: 'flex', justifyContent: 'center', marginTop: '1.5rem' }}>
-                 <button
-                   className="action-btn submit-btn"
-                   onClick={handleProcessPayment}
-                   disabled={!!staffError}
-                 >
-                   Confirm &amp; Print Bill
-                 </button>
+                 {(() => {
+                    const isExempt = (name) => EXEMPT_SERVICES.some(ex => name.toLowerCase().includes(ex.toLowerCase()));
+                    const doctorRequired = selectedServices.some(s => !isExempt(s.name));
+                    const canProceed = activeNurse && (!doctorRequired || activeDoctor) && !staffError;
+                    
+                    return (
+                      <button
+                        className="action-btn submit-btn"
+                        onClick={handleProcessPayment}
+                        disabled={!canProceed}
+                      >
+                        Confirm &amp; Print Bill
+                      </button>
+                    );
+                 })()}
                </div>
              </div>
            )}
