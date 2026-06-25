@@ -1,4 +1,8 @@
 # 🏥 WellMed – Hospital Management System
+![React](https://img.shields.io/badge/React-19-blue?logo=react)
+![Firebase](https://img.shields.io/badge/Firebase-Backend-orange?logo=firebase)
+![Vite](https://img.shields.io/badge/Vite-Build-purple?logo=vite)
+![Production](https://img.shields.io/badge/Status-Production-success)
 
 WellMed is a modern, real-time hospital management system designed specifically to streamline front-desk, reception, and administrative workflows. The platform replaces traditional paper-based processes with an efficient, digital-first system that reduces patient wait times and enhances operational productivity.
 
@@ -21,6 +25,14 @@ WellMed is a modern, real-time hospital management system designed specifically 
 - **Backend Services & Database:** Firebase Authentication, Cloud Firestore, Firebase Security Rules
 - **Document Generation:** Puppeteer (for generating print-ready invoices and reports)
 - **Deployment:** Firebase Hosting
+
+---
+
+## 🚀 Production Status
+
+- ✅ Successfully deployed using Firebase Hosting.
+- ✅ Currently used in a real healthcare environment to support front-desk, reception, and administrative operations.
+- ✅ Actively maintained with continuous feature enhancements, performance improvements, and bug fixes.
 
 ---
 
