@@ -18,7 +18,7 @@ WellMed is a modern, real-time hospital management system designed specifically 
 ## 🛠 Tech Stack
 
 - **Frontend:** React.js (Vite), React Router, Custom CSS
-- **Backend & Database:** Firebase Authentication, Cloud Firestore (Real-time Database)
+- **Backend Services & Database:** Firebase Authentication, Cloud Firestore, Firebase Security Rules
 - **Document Generation:** Puppeteer (for generating print-ready invoices and reports)
 - **Deployment:** Firebase Hosting
 
